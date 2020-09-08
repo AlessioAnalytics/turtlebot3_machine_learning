@@ -144,7 +144,7 @@ class ReinforceAgent():
                 next_target = self.predict_target(next_states, goals)
 
             else:
-                next_target = q_value = self.predict(next_states, goals)
+                next_target = self.predict(next_states, goals)
 
             next_q_value = self.getQvalue(rewards, next_target, dones)
 
