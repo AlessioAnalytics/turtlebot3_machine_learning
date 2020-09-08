@@ -37,6 +37,7 @@ from importlib import import_module
 
 EPISODES = 3000
 
+
 class ReinforceAgent():
     def __init__(self, state_size, action_size, goal_size, stage="1"):
         self.pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
@@ -144,7 +145,7 @@ class ReinforceAgent():
                 next_target = self.predict_target(next_states, goals)
 
             else:
-                next_target = q_value = self.predict(next_states, goals)
+                next_target = self.predict(next_states, goals)
 
             next_q_value = self.getQvalue(rewards, next_target, dones)
 

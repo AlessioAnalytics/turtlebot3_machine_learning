@@ -16,7 +16,6 @@
 #################################################################################
 
 # Authors: Gilbert #
-import argparse
 
 import rospy
 import os
@@ -154,10 +153,6 @@ class ReinforceAgent():
 
 
 if __name__ == '__main__':
-    # parser = argparse.ArgumentParser(description="Argumentparser DEscribtion")
-    # parser.add_argument('--stage', action="store", type=str, default="1")
-    # args = parser.parse_args()
-    # stage = args.stage
     stage = rospy.get_param("/turtlebot3_dqn/stage")
 
     Env = import_module("src.turtlebot3_dqn.environment_stage_" + stage)
