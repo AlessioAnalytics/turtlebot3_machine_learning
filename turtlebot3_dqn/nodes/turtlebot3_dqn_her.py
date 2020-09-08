@@ -243,8 +243,8 @@ if __name__ == '__main__':
                 m, s = divmod(int(time.time() - start_time), 60)
                 h, m = divmod(m, 60)
 
-                rospy.loginfo('Ep: %d score: %.2f memory: %d epsilon: %.2f time: %d:%02d:%02d',
-                              episode_number, score, agent.her.n_entrys, agent.epsilon, h, m, s)
+                rospy.loginfo('Run: %d Ep: %d score: %.2f memory: %d epsilon: %.2f time: %d:%02d:%02d',
+                              run_id, episode_number, score, agent.her.n_entrys, agent.epsilon, h, m, s)
                 param_keys = ['epsilon', 'episode']
                 param_values = [agent.epsilon, episode_number]
                 param_dictionary = dict(zip(param_keys, param_values))
