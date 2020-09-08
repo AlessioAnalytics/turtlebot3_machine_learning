@@ -43,7 +43,7 @@ class Env():
         self.unpause_proxy = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
         self.pause_proxy = rospy.ServiceProxy('gazebo/pause_physics', Empty)
         self.respawn_goal = Respawn()
-    
+
     def getGoal(self):
         return [self.goal_x, self.goal_y]
 
@@ -94,7 +94,7 @@ class Env():
         if current_goal_distance < 0.2:
             self.get_goalbox = True
 
-        return scan_range + [heading, current_goal_distance, 0, 0], done
+        return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def setReward(self, state, done, action):
         yaw_reward = []
