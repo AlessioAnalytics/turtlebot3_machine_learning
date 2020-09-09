@@ -165,7 +165,7 @@ class ReinforceAgent():
 if __name__ == '__main__':
     stage = rospy.get_param("/turtlebot3_dqn/stage")
 
-    Env = import_module("src.turtlebot3_dqn.environment")
+    Env = import_module("src.turtlebot3_dqn.environment_her")
 
     rospy.init_node('turtlebot3_dqn_stage_' + stage)
 
