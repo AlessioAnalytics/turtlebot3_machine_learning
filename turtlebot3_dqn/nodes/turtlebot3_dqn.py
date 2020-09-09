@@ -172,10 +172,11 @@ if __name__ == '__main__':
 
     state_size = 28
     action_size = 5
+    goal_size = 2
 
     run_id = int(time.time())
     log_title = "turtlebot3"
-    log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=2)
+    log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=goal_size)
     env = Env.Env(action_size)
     agent = ReinforceAgent(state_size, action_size, stage)
 
@@ -196,10 +197,10 @@ if __name__ == '__main__':
             action = agent.getAction(state)
 
             next_state, reward, done = env.step(action)
-
+            position = env.getPosition()
             agent.appendMemory(state, action, reward, next_state, done)
             log_utils.make_log_entry(log, log_title, run_id, episode_number,
-                                     episode_step, state, next_state, goal,
+                                     episode_step, state, next_state, goal, position,
                                      action, agent.q_value,
                                      reward, done)
 
@@ -247,7 +248,7 @@ if __name__ == '__main__':
             global_step += 1
             if global_step % agent.target_update == 0:
                 rospy.loginfo("UPDATE TARGET NETWORK")
-        log.save(save_to_db=True)
+        log.save()
         if agent.epsilon > agent.epsilon_min:
             agent.epsilon *= agent.epsilon_decay
 
