@@ -254,6 +254,6 @@ if __name__ == '__main__':
                 rospy.loginfo("UPDATE TARGET NETWORK")
 
         agent.her.import_episode()
-        log.save(save_to_db=True)
+        log.save()
         if agent.epsilon > agent.epsilon_min:
             agent.epsilon *= agent.epsilon_decay
