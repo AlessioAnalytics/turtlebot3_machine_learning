@@ -41,7 +41,9 @@ class logger:
             print("log:", self.path + self.title, "not present")
             self.log = self.header + log
             self.load_full = True
+            self.save_to_db = False
             self.save()
+            self.save_to_db = True
             self.log = ""
             self.load_full = False
 
