@@ -5,7 +5,7 @@ import numpy as np
 
 class HindsightExperienceReplay:
     def __init__(self, k=1, strategie="future", maxlen=1000000, batch_size=64):
-        self.k=k
+        self.k = k
         self.strategie = strategie
         self.episode_replay = []
         self.memory = deque(maxlen=maxlen)
@@ -38,7 +38,7 @@ class HindsightExperienceReplay:
             transitions = self.sample_transitions(t)
             for transition in transitions:
                 self.append_memory(transition)
-        self.episode_replay=[]
+        self.episode_replay = []
 
     def sample_transitions(self, t):
         transitions = []
@@ -52,13 +52,7 @@ class HindsightExperienceReplay:
             else:
                 sample_reward = 0
 
-            sample_transition = (sample_state, sample_action, goal_position, sample_reward, sample_next_state, sample_done)
+            sample_transition = (
+            sample_state, sample_action, goal_position, sample_reward, sample_next_state, sample_done)
             transitions.append(sample_transition)
-        return  transitions
-
-
-
-
-
-            
-            
+        return transitions
