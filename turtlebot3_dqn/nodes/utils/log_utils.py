@@ -58,7 +58,6 @@ def setup_logger(title, n_state_vals, action_dim, goal_dim, save_to_db=True,
 
     log = logger(title=title + ".log", keys=keys_, dtypes=dtypes_, sep="\t", load_full=False, save_to_db=save_to_db,
                  db_config=db_config)
-    log.db_create_table()
     return log, keys_
 
 
