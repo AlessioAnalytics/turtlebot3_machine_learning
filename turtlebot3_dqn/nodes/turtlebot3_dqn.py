@@ -39,7 +39,7 @@ from importlib import import_module
 EPISODES = 3000
 
 
-class ReinforceAgent():
+class ReinforceAgent:
     def __init__(self, state_size, action_size, stage="1"):
         self.pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
         self.dirPath = os.path.dirname(os.path.realpath(__file__))
@@ -84,12 +84,12 @@ class ReinforceAgent():
 
     def buildModel(self):
         model = Sequential([
-                Dense(64, input_shape=(self.state_size,), kernel_initializer='lecun_uniform'),
-                Activation('relu'),
-                Dense(64, kernel_initializer='lecun_uniform'),
-                Activation('relu'),
-                Dropout(0.2),
-                Dense(self.action_size, kernel_initializer='lecun_uniform'),
+            Dense(64, input_shape=(self.state_size,), kernel_initializer='lecun_uniform'),
+            Activation('relu'),
+            Dense(64, kernel_initializer='lecun_uniform'),
+            Activation('relu'),
+            Dropout(0.2),
+            Dense(self.action_size, kernel_initializer='lecun_uniform'),
         ])
         model.compile(loss='mse', optimizer=RMSprop(lr=self.learning_rate, rho=0.9, epsilon=1e-06))
         model.summary()
@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
     Env = import_module("src.turtlebot3_dqn.environment_stage_" + stage)
 
-    rospy.init_node('turtlebot3_dqn_stage_'+stage)
+    rospy.init_node('turtlebot3_dqn_stage_' + stage)
 
     pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
     pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
@@ -250,4 +250,3 @@ if __name__ == '__main__':
         log.save(save_to_db=True)
         if agent.epsilon > agent.epsilon_min:
             agent.epsilon *= agent.epsilon_decay
-
