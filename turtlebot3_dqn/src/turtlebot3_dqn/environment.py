@@ -100,7 +100,7 @@ class Env():
         reward = -0.05
 
         if action == 2:
-            reward += 0.1
+            reward += 0.01
 
         if done:
             rospy.loginfo("Collision!!")
