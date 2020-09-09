@@ -138,7 +138,7 @@ class ReinforceAgent():
             next_states = mini_batch[i][4]
             dones = mini_batch[i][5]
 
-            q_value = self.predict(state, goals)
+            q_value = self.predict(states, goals)
             self.q_value = q_value
 
             if target:
