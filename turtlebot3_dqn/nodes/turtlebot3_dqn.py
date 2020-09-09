@@ -191,10 +191,10 @@ if __name__ == '__main__':
             action = agent.getAction(state)
 
             next_state, reward, done = env.step(action)
-
+            position = env.getPosition()
             agent.appendMemory(state, action, reward, next_state, done)
             log_utils.make_log_entry(log, log_title, run_id, episode_number,
-                                     episode_step, state, next_state, goal,
+                                     episode_step, state, next_state, goal, position,
                                      action, agent.q_value,
                                      reward, done)
 
