@@ -182,7 +182,7 @@ def log_episode_info(episode_number, score, agent):
                   episode_number, score, agent.her.n_entrys, agent.epsilon, hours, minutes, seconds)
 
 
-def run_episode(global_step, param_dictionary):
+def run_episode(env, global_step, param_dictionary):
     result = Float32MultiArray()
     get_action = Float32MultiArray()
 
@@ -264,7 +264,7 @@ if __name__ == '__main__':
     param_dictionary = dict(zip(param_keys, param_values))
 
     for episode_number in range(agent.load_episode + 1, EPISODES):
-        global_step, param_dictionary = run_episode(global_step, param_dictionary)
+        global_step, param_dictionary = run_episode(env, global_step, param_dictionary)
 
         agent.her.import_episode()
         log.save(save_to_db=True)
