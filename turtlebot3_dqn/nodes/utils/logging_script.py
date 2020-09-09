@@ -8,13 +8,14 @@ import pandas as pd
 
 
 class logger:
-    def __init__(self, title="log.txt", path="/root/logs/", log="", keys=[], dtypes=[], sep=",", db_config=None, load_full=False):
+    def __init__(self, title="log.txt", path="/root/logs/", log="", keys=[], dtypes=[], sep=",", save_to_db = False, db_config=None, load_full=False):
         self.title = title
         self.path = path
         self.keys = keys
         self.dtypes = dtypes
         self.sep = sep
         self.load_full = load_full
+        self.save_to_db = save_to_db
         self.db_config = db_config
         self.header = self.make_header()
 
@@ -33,8 +34,6 @@ class logger:
                         self.log = log
                     else:
                         print("keys dont match with old log")
-                        # print("old_header:", old_header)
-                        # print("set_header:", self.header)
                         sys.exit(0)
 
         else:
@@ -45,10 +44,6 @@ class logger:
             self.save()
             self.log = ""
             self.load_full = False
-
-
-        # if self.log[:len(self.header)] != self.header:
-        #     self.log = self.header+self.log
 
     def make_header(self):
         header = ""
@@ -74,12 +69,12 @@ class logger:
         else:
             self.write_line(lines)
 
-    def save(self, save_to_db = False):
+    def save(self):
         if self.load_full:
             with open(self.path + self.title, "w") as write_file:
                 write_file.write(self.log)
             self.log_file_present = True
-            if save_to_db:
+            if self.save_to_db:
                 self.save_log_to_database()
         else:
             if self.log_file_present:
@@ -89,7 +84,7 @@ class logger:
                 with open(self.path + self.title, "w") as write_file:
                     write_file.write(self.log)
                 self.log_file_present = True
-            if save_to_db:
+            if self.save_to_db:
                 self.save_log_to_database()
             self.log = ""
 
@@ -98,17 +93,10 @@ class logger:
         log = [line.split(self.sep) for line in self.log.split("\n")][:-1]
         df =  pd.DataFrame(np.array(log))
         return df
-        # if self.load_full:
-        #     StringData = io.StringIO(self.log)
-        # else:
-        #     StringData = io.StringIO(self.header + self.log)
-
-        #return pd.read_csv(StringData, sep=self.sep)
 
     def save_log_to_database(self):
         if not database_connection.table_exists(self.db_config):
             database_connection.create_table(self.db_config)
-	    print("TABLE CREATED")
 
         df = self.to_DataFrame()
         if len(df) > 0:
@@ -123,9 +111,3 @@ class logger:
         if not database_connection.table_exists(self.db_config):
             database_connection.create_table(self.db_config)
 
-
-# log = logger(keys = ["a","b"],load_full=False)
-# lines = [[1,2]]
-# log.write(lines)
-# print(log.to_DataFrame())
-# print(log.to_DataFrame().values)
