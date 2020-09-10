@@ -15,7 +15,7 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert, Widowski, Müller#
+# Authors: Gilbert, Widowski, Müller #
 
 import rospy
 import numpy as np
