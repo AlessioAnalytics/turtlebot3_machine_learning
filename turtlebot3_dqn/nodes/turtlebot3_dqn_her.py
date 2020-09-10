@@ -59,6 +59,7 @@ class ReinforceAgent():
         self.epsilon_min = 0.05
         self.batch_size = 64
         self.train_start = 64
+        self.entropy_regularisation = 0
         self.her = HindsightExperienceReplay(k=1, strategie="future",maxlen=1000000, batch_size=self.batch_size)
 
         self.model = self.buildModel()
@@ -98,11 +99,19 @@ class ReinforceAgent():
 
         return model
 
+    def softmax(self, x):
+        return np.exp(x)/np.sum(np.exp(x))
+
+    def entropy(self, p):
+        return -np.sum(p*np.log(p))
+
     def getQvalue(self, reward, next_target, done):
         if done:
-            return reward
+            q_value = reward
         else:
-            return reward + self.discount_factor * np.amax(next_target)
+            q_value = reward + self.discount_factor * np.amax(next_target)
+            q_value += self.entropy_regularisation * self.entropy(self.softmax(next_target))
+        return q_value
 
     def updateTargetModel(self):
         self.target_model.set_weights(self.model.get_weights())
@@ -143,7 +152,6 @@ class ReinforceAgent():
 
             if target:
                 next_target = self.predict_target(next_states, goals)
-
             else:
                 next_target = self.predict(next_states, goals)
 
