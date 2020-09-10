@@ -202,13 +202,20 @@ if __name__ == '__main__':
         done = False
         state = env.reset()
         score = 0
-
+        start_goal = env.getGoal()
         for episode_step in range(agent.episode_step):
             goal = env.getGoal()
             action = agent.getAction(state, goal)
 
             next_state, reward, done = env.step(action)
             position = env.getPosition()
+
+            if episode_step >= 500:
+                rospy.loginfo("Time out!!")
+                if goal == start_goal:
+                    reward = -10
+                done = True
+
             agent.her.append_episode_replay(state, action, goal, position, reward, next_state, done)
             log_utils.make_log_entry(log, log_title, run_id, episode_number,
                                      episode_step, state, next_state, goal, position,
@@ -235,10 +242,6 @@ if __name__ == '__main__':
                 with open(agent.dirPath + "latest" + '.json', 'w') as outfile:
                     json.dump(param_dictionary, outfile)
                     print("MODEL SAVED", param_dictionary)
-
-            if episode_step >= 500:
-                rospy.loginfo("Time out!!")
-                done = True
 
             if done:
                 result.data = [score, np.max(agent.q_value)]
