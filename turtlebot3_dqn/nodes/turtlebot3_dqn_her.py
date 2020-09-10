@@ -201,10 +201,10 @@ if __name__ == '__main__':
             action = agent.getAction(state, goal)
 
             next_state, reward, done = env.step(action)
-            her_goal = env.getPosition()
-            agent.her.append_episode_replay(state, action, goal, her_goal, reward, next_state, done)
+            position = env.getPosition()
+            agent.her.append_episode_replay(state, action, goal, position, reward, next_state, done)
             log_utils.make_log_entry(log, log_title, run_id, episode_number,
-                                     episode_step, state, next_state, goal, her_goal,
+                                     episode_step, state, next_state, goal, position,
                                      action, agent.q_value,
                                      reward, done)
 
@@ -254,6 +254,6 @@ if __name__ == '__main__':
                 rospy.loginfo("UPDATE TARGET NETWORK")
 
         agent.her.import_episode()
-        log.save(save_to_db=True)
+        log.save()
         if agent.epsilon > agent.epsilon_min:
             agent.epsilon *= agent.epsilon_decay
