@@ -39,10 +39,10 @@ EPISODES = 3000
 
 
 class ReinforceAgent():
-    def __init__(self, state_size, action_size, goal_size, stage="1"):
+    def __init__(self, state_size, action_size, goal_size):
         self.pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
         self.dirPath = os.path.dirname(os.path.realpath(__file__))
-        self.dirPath = self.dirPath.replace('turtlebot3_dqn/nodes', 'turtlebot3_dqn/save_model/stage_' + stage + '_')
+        self.dirPath = self.dirPath.replace('turtlebot3_dqn/nodes', 'turtlebot3_dqn/save_model/weights_')
         self.result = Float32MultiArray()
 
         self.load_model = True
@@ -171,11 +171,9 @@ class ReinforceAgent():
 
 
 if __name__ == '__main__':
-    stage = rospy.get_param("/turtlebot3_dqn/stage")
-
     Env = import_module("src.turtlebot3_dqn.environment_her")
 
-    rospy.init_node('turtlebot3_dqn_stage_' + stage)
+    rospy.init_node('turtlebot3_dqn')
 
     pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
     pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
@@ -191,7 +189,7 @@ if __name__ == '__main__':
     log_title = "turtlebot3_dqn"
     log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=goal_size)
     env = Env.Env(action_size)
-    agent = ReinforceAgent(state_size, action_size, goal_size, stage)
+    agent = ReinforceAgent(state_size, action_size, goal_size)
 
     scores, episodes = [], []
     global_step = 0
