@@ -97,10 +97,10 @@ class Env():
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def setReward(self, done, action):
-        reward = -0.05
+        reward = -0.001
 
-        if action == 2:
-            reward += 0.01
+        if not action == 2:
+            reward -= 0.001
 
         if done:
             rospy.loginfo("Collision!!")
