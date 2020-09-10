@@ -94,7 +94,7 @@ class Env():
         if current_goal_distance < 0.2:
             self.get_goalbox = True
 
-        return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
+        return scan_range + [self.position.x, self.position.y, obstacle_min_range, obstacle_angle], done
 
     def setReward(self, done, action):
         reward = -0.001
