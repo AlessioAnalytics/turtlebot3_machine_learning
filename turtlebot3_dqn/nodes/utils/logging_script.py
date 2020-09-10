@@ -43,7 +43,7 @@ class logger:
             self.load_full = True
             self.save_to_db = False
             self.save()
-            self.save_to_db = True
+            self.save_to_db = save_to_db
             self.log = ""
             self.load_full = False
 
