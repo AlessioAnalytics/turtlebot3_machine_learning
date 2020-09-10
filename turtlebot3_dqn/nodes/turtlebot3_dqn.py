@@ -190,10 +190,10 @@ if __name__ == '__main__':
     for episode_number in range(agent.load_episode + 1, EPISODES):
         done = False
         state = env.reset()
-        goal = env.getGoal()
         score = 0
 
         for episode_step in range(agent.episode_step):
+            goal = env.getGoal()
             action = agent.getAction(state)
 
             next_state, reward, done = env.step(action)
