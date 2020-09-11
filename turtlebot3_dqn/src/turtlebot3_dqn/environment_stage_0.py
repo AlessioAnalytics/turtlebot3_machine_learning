@@ -71,11 +71,7 @@ class Env():
             heading += 2 * pi
 
         self.heading = round(heading, 2)
-        self.previous_goal_distance = self.current_goal_distance
         self.current_goal_distance = self.getGoalDistace()
-
-        if self.previous_goal_distance ==None: # TODO is there a better way for the first call?
-            self.previous_goal_distance = self.current_goal_distance
 
     def getState(self, scan):
         done = False
@@ -104,12 +100,12 @@ class Env():
         current_goal_distance = self.current_goal_distance / goal_distance_normalize
         obstacle_min_range = round(min(scan_range)/scan_normalize_const, 2)
         obstacle_angle = np.argmin(scan_range)/n_scan_ranges*2-1
-
+        self.previous_goal_distance = self.current_goal_distance
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def setReward(self, state, done, action):
 
-        reward = 0.1 if (self.previous_goal_distance-self.current_goal_distance) >0 else -0.1
+        reward = (self.previous_goal_distance-self.current_goal_distance)
 
         if done:
             rospy.loginfo("Collision!!")
