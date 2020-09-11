@@ -34,6 +34,7 @@ class Env():
         self.goal_y = 0
         self.heading = 0
         self.current_goal_distance = None
+        self.previous_goal_distance = None
         self.action_size = action_size
         self.initGoal = True
         self.get_goalbox = False
@@ -118,6 +119,7 @@ class Env():
             self.pub_cmd_vel.publish(Twist())
             self.goal_x, self.goal_y = self.respawn_goal.getPosition(True, delete=True)
             self.start_goal_distance = self.getGoalDistace()
+            self.previous_goal_distance = self.start_goal_distance
             self.get_goalbox = False
 
         return reward
@@ -162,6 +164,7 @@ class Env():
             self.initGoal = False
 
         self.start_goal_distance = self.getGoalDistace()
+        self.previous_goal_distance = self.start_goal_distance
         state, done = self.getState(data)
 
         return np.asarray(state)
