@@ -186,7 +186,7 @@ if __name__ == '__main__':
         state = env.reset()
         goal = env.getGoal()
         score = 0
-
+        start_goal = env.getGoal()
         for episode_step in range(agent.episode_step):
             goal = env.getGoal()
             action = agent.getAction(state)
@@ -222,6 +222,8 @@ if __name__ == '__main__':
 
             if episode_step >= 500:
                 rospy.loginfo("Time out!!")
+                if goal == start_goal:
+                    reward = -200
                 done = True
 
             if done:
@@ -243,6 +245,7 @@ if __name__ == '__main__':
             global_step += 1
             if global_step % agent.target_update == 0:
                 rospy.loginfo("UPDATE TARGET NETWORK")
+
         log.save(save_to_db=True)
         if agent.epsilon > agent.epsilon_min:
             agent.epsilon *= agent.epsilon_decay
