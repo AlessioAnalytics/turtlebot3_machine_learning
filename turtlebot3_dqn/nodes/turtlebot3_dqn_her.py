@@ -15,16 +15,16 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert, Widowski, Müller #
+# Authors: Gilbert, Widowski, Mueller #
 
 import rospy
 import os
-import json
 import numpy as np
 import time
 import sys
 
 from utils import log_utils
+from utils.model_utils import save_model, log_episode_info
 from dqn_her_agent import ReinforceAgent
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
@@ -32,29 +32,7 @@ from std_msgs.msg import Float32MultiArray
 from importlib import import_module
 
 
-def save_model(agent, param_dictionary):
-    agent.model.save(agent.dirPath + str(episode_number) + '.h5')
-    with open(agent.dirPath + str(episode_number) + '.json', 'w') as outfile:
-        json.dump(param_dictionary, outfile)
-    agent.model.save(agent.dirPath + "latest" + '.h5')
-    with open(agent.dirPath + "latest" + '.json', 'w') as outfile:
-        json.dump(param_dictionary, outfile)
-        print("MODEL SAVED", param_dictionary)
-
-
-def get_time_since_start(start_time):
-    minutes, seconds = divmod(int(time.time() - start_time), 60)
-    hours, minutes = divmod(minutes, 60)
-    return hours, minutes, seconds
-
-
-def log_episode_info(episode_number, score, agent):
-    hours, minutes, seconds = get_time_since_start(start_time)
-    rospy.loginfo('Ep: %d score: %.2f memory: %d epsilon: %.2f time: %d:%02d:%02d',
-                  episode_number, score, agent.her.n_entrys, agent.epsilon, hours, minutes, seconds)
-
-
-def run_episode(env, global_step, param_dictionary):
+def run_episode(env, global_step, param_dictionary, start_time):
     result = Float32MultiArray()
     get_action = Float32MultiArray()
 
@@ -85,7 +63,7 @@ def run_episode(env, global_step, param_dictionary):
         pub_get_action.publish(get_action)
 
         if episode_number % 10 == 0 and episode_step == 0:
-            save_model(agent, param_dictionary)
+            save_model(agent, param_dictionary, episode_number)
 
         if episode_step >= 500:
             rospy.loginfo("Time out!!")
@@ -97,7 +75,7 @@ def run_episode(env, global_step, param_dictionary):
             agent.update_target_model()
             scores.append(score)
             episodes.append(episode_number)
-            log_episode_info(episode_number, score, agent)
+            log_episode_info(episode_number, score, agent, start_time)
 
             param_keys = ['epsilon', 'episode']
             param_values = [agent.epsilon, episode_number]
@@ -111,10 +89,11 @@ def run_episode(env, global_step, param_dictionary):
 
 
 if __name__ == '__main__':
+    EPISODES = 3000
+
     stage = rospy.get_param("/turtlebot3_dqn/stage")
     Env = import_module("src.turtlebot3_dqn.environment_stage_" + stage)
     rospy.init_node('turtlebot3_dqn_stage_' + stage)
-    EPISODES = 3000
 
     pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
     pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
@@ -137,7 +116,7 @@ if __name__ == '__main__':
     param_dictionary = dict(zip(param_keys, param_values))
 
     for episode_number in range(agent.load_episode + 1, EPISODES):
-        global_step, param_dictionary = run_episode(env, global_step, param_dictionary)
+        global_step, param_dictionary = run_episode(env, global_step, param_dictionary, start_time)
 
         agent.her.import_episode()
         log.save(save_to_db=True)

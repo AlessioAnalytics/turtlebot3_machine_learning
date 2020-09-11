@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #################################################################################
-# Copyright 2018 ROBOTIS CO., LTD.
+# Copyright Alessio Analytics CO., LTD.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Widowski, Müller #
+# Authors: Widowski, Mueller #
 
 
 from collections import deque
