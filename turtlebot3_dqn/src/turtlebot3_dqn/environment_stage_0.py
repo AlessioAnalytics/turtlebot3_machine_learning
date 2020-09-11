@@ -33,6 +33,7 @@ class Env():
         self.goal_x = 0
         self.goal_y = 0
         self.heading = 0
+        self.current_goal_distance = None
         self.action_size = action_size
         self.initGoal = True
         self.get_goalbox = False
@@ -51,8 +52,8 @@ class Env():
         return [self.position.x, self.position.y]
 
     def getGoalDistace(self):
-        start_goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
-        return start_goal_distance
+        goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
+        return goal_distance
 
     def getOdometry(self, odom):
         self.position = odom.pose.pose.position
@@ -71,7 +72,10 @@ class Env():
 
         self.heading = round(heading, 2)
         self.previous_goal_distance = self.current_goal_distance
-        self.current_goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y),2)
+        self.current_goal_distance = self.getGoalDistace()
+
+        if self.previous_goal_distance ==None: # TODO is there a better way for the first call?
+            self.previous_goal_distance = self.current_goal_distance
 
     def getState(self, scan):
         done = False
