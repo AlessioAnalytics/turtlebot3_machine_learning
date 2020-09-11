@@ -84,10 +84,6 @@ class Env():
         goal_distance_normalize = 2
         heading_normalize = math.pi
 
-        heading = self.heading/heading_normalize
-        current_goal_distance = self.current_goal_distance / goal_distance_normalize
-
-
         scan_range = []
         n_scan_ranges = len(scan.ranges)
         for i in range(n_scan_ranges):
@@ -98,14 +94,16 @@ class Env():
             else:
                 scan_range.append(scan.ranges[i]/scan_normalize_const)
 
-        obstacle_min_range = round(min(scan_range)/scan_normalize_const, 2)
-        obstacle_angle = np.argmin(scan_range)/n_scan_ranges*2-1
-
-        if min_range > min(scan_range) > 0:
+        if min_range/scan_normalize_const > min(scan_range) > 0:
             done = True
 
-        if current_goal_distance < 0.2:
+        if self.current_goal_distance < 0.2:
             self.get_goalbox = True
+
+        heading = self.heading/heading_normalize
+        current_goal_distance = self.current_goal_distance / goal_distance_normalize
+        obstacle_min_range = round(min(scan_range)/scan_normalize_const, 2)
+        obstacle_angle = np.argmin(scan_range)/n_scan_ranges*2-1
 
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
