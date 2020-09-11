@@ -100,12 +100,12 @@ class Env():
         current_goal_distance = self.current_goal_distance / goal_distance_normalize
         obstacle_min_range = round(min(scan_range)/scan_normalize_const, 2)
         obstacle_angle = np.argmin(scan_range)/n_scan_ranges*2-1
-        self.previous_goal_distance = self.current_goal_distance
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def setReward(self, state, done, action):
 
         reward = (self.previous_goal_distance-self.current_goal_distance)
+        self.previous_goal_distance = self.current_goal_distance
 
         if done:
             rospy.loginfo("Collision!!")
