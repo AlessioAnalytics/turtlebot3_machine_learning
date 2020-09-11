@@ -111,7 +111,7 @@ class Env():
 
     def setReward(self, state, done, action):
 
-        reward = (self.previous_goal_distance-self.current_goal_distance)
+        reward = 0.1 if (self.previous_goal_distance-self.current_goal_distance) >0 else -0.1
 
         if done:
             rospy.loginfo("Collision!!")
