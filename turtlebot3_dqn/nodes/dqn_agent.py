@@ -123,14 +123,8 @@ class ReinforceAgent:
         Y_batch = np.empty((0, self.action_size), dtype=np.float64)
 
         for i in range(self.batch_size):
-            states = mini_batch[i][0]
-            actions = mini_batch[i][1]
-            rewards = mini_batch[i][2]
-            next_states = mini_batch[i][3]
-            dones = mini_batch[i][4]
-
-            q_value = self.model.predict(states.reshape(1, len(states)))
-            self.q_value = q_value
+            states, actions, rewards, next_states, dones = mini_batch[i]
+            self.q_value = self.model.predict(states.reshape(1, len(states)))
 
             if target:
                 next_target = self.target_model.predict(next_states.reshape(1, len(next_states)))
@@ -141,7 +135,7 @@ class ReinforceAgent:
             next_q_value = self.get_q_value(rewards, next_target, dones)
 
             X_batch = np.append(X_batch, np.array([states.copy()]), axis=0)
-            Y_sample = q_value.copy()
+            Y_sample = self.q_value.copy()
 
             Y_sample[0][actions] = next_q_value
             Y_batch = np.append(Y_batch, np.array([Y_sample[0]]), axis=0)

@@ -56,7 +56,7 @@ class ReinforceAgent:
         self.batch_size = batch_size
         self.train_start = train_start
 
-        self.her = HindsightExperienceReplay(k=1, strategie="future", maxlen=1000000, batch_size=self.batch_size)
+        self.her = HindsightExperienceReplay(k=1, strategy="future", maxlen=1000000, batch_size=self.batch_size)
         self.q_values = np.zeros(self.action_size)
 
         self.model = self.build_model()

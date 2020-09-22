@@ -24,9 +24,9 @@ import numpy as np
 
 
 class HindsightExperienceReplay:
-    def __init__(self, k=1, strategie="future", maxlen=1000000, batch_size=64):
+    def __init__(self, k=1, strategy="future", maxlen=1000000, batch_size=64):
         self.k = k
-        self.strategie = strategie
+        self.strategy = strategy
         self.episode_replay = []
         self.memory = deque(maxlen=maxlen)
         self.batch_size = batch_size
@@ -44,10 +44,12 @@ class HindsightExperienceReplay:
 
     def sample_episode_replay(self, t):
         T = len(self.episode_replay)
-        if self.strategie == "future":
+        if self.strategy == "future":
             transition_idx = np.random.randint(t, T)
-        elif self.strategie == "episode":
+        elif self.strategy == "episode":
             transition_idx = np.random.randint(0, T)
+        else:
+            raise ValueError("Invalid strategy selected")
         return self.episode_replay[transition_idx]
 
     def import_episode(self):
@@ -63,7 +65,7 @@ class HindsightExperienceReplay:
     def sample_transitions(self, t):
         transitions = []
         for _ in range(self.k):
-            _, _, _, goal_position, _, _, _ = self.sample_episode_replay(t)
+            goal_position = self.sample_episode_replay(t)[3]
             sample_state, sample_action, _, position, _, sample_next_state, sample_done = self.episode_replay[t]
 
             # TODO map the following to a reward_function that is passed to the class
