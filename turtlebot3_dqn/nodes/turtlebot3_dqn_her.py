@@ -119,6 +119,6 @@ if __name__ == '__main__':
         global_step, param_dictionary = run_episode(env, global_step, param_dictionary, start_time)
 
         agent.her.import_episode()
-        log.save(save_to_db=True)
+        log.save()
         if agent.epsilon > agent.epsilon_min:
             agent.epsilon *= agent.epsilon_decay

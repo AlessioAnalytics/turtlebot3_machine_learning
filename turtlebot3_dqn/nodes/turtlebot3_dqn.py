@@ -124,7 +124,7 @@ if __name__ == '__main__':
                                           start_time=start_time, scores=scores, episodes=episodes,
                                           log=log, log_title=log_utils, episode_number=episode_number)
 
-        log.save(save_to_db=True)
+        log.save()
 
         if agent.epsilon > agent.epsilon_min:
             agent.epsilon *= agent.epsilon_decay
