@@ -25,7 +25,7 @@ import time
 def log_episode_info(episode_number, score, agent, start_time):
     hours, minutes, seconds = get_time_since_start(start_time)
     rospy.loginfo('Ep: %d score: %.2f memory: %d epsilon: %.2f time: %d:%02d:%02d',
-                  episode_number, score, agent.her.n_entrys, agent.epsilon, hours, minutes, seconds)
+                  episode_number, score, len(agent.memory), agent.epsilon, hours, minutes, seconds)
 
 
 def save_model(agent, param_dictionary, episode_number):
