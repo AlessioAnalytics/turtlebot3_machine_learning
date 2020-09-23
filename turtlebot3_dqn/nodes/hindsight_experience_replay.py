@@ -1,12 +1,32 @@
+#!/usr/bin/env python
+#################################################################################
+# Copyright Alessio Analytics CO., LTD.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#################################################################################
+
+# Authors: Widowski, Mueller #
+
+
 from collections import deque
 import random
 import numpy as np
 
 
 class HindsightExperienceReplay:
-    def __init__(self, k=1, strategie="future", maxlen=1000000, batch_size=64):
-        self.k=k
-        self.strategie = strategie
+    def __init__(self, k=1, strategy="future", maxlen=1000000, batch_size=64):
+        self.k = k
+        self.strategy = strategy
         self.episode_replay = []
         self.memory = deque(maxlen=maxlen)
         self.batch_size = batch_size
@@ -24,10 +44,12 @@ class HindsightExperienceReplay:
 
     def sample_episode_replay(self, t):
         T = len(self.episode_replay)
-        if self.strategie == "future":
+        if self.strategy == "future":
             transition_idx = np.random.randint(t, T)
-        elif self.strategie == "episode":
+        elif self.strategy == "episode":
             transition_idx = np.random.randint(0, T)
+        else:
+            raise ValueError("Invalid strategy selected")
         return self.episode_replay[transition_idx]
 
     def import_episode(self):
@@ -38,12 +60,12 @@ class HindsightExperienceReplay:
             transitions = self.sample_transitions(t)
             for transition in transitions:
                 self.append_memory(transition)
-        self.episode_replay=[]
+        self.episode_replay = []
 
     def sample_transitions(self, t):
         transitions = []
         for _ in range(self.k):
-            _, _, _, goal_position, _, _, _ = self.sample_episode_replay(t)
+            goal_position = self.sample_episode_replay(t)[3]
             sample_state, sample_action, _, position, _, sample_next_state, sample_done = self.episode_replay[t]
 
             # TODO map the following to a reward_function that is passed to the class
@@ -52,13 +74,7 @@ class HindsightExperienceReplay:
             else:
                 sample_reward = 0
 
-            sample_transition = (sample_state, sample_action, goal_position, sample_reward, sample_next_state, sample_done)
+            sample_transition = (
+                sample_state, sample_action, goal_position, sample_reward, sample_next_state, sample_done)
             transitions.append(sample_transition)
-        return  transitions
-
-
-
-
-
-            
-            
+        return transitions
