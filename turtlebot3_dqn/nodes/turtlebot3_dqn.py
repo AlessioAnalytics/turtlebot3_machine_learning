@@ -23,7 +23,7 @@ import numpy as np
 import time
 import sys
 
-from her_agent import ReinforceAgent
+from dqn_agent import ReinforceAgent
 from utils import log_utils
 from utils.model_utils import save_model, log_episode_info
 
@@ -32,7 +32,9 @@ from std_msgs.msg import Float32MultiArray
 from importlib import import_module
 
 
-def run_episode(global_step, param_dictionary, start_time):
+def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
+                global_step, param_dictionary, start_time, scores, episodes,
+                log, log_title):
     result = Float32MultiArray()
     get_action = Float32MultiArray()
 
@@ -81,7 +83,7 @@ def run_episode(global_step, param_dictionary, start_time):
             param_values = [agent.epsilon, episode_number]
             param_dictionary = dict(zip(param_keys, param_values))
 
-            return global_step, param_dictionary
+            return run_id, global_step
 
         global_step += 1
         if global_step % agent.target_update == 0:
@@ -115,7 +117,13 @@ if __name__ == '__main__':
     param_dictionary = dict(zip(param_keys, param_values))
 
     for episode_number in range(agent.load_episode + 1, EPISODES):
-        global_step, param_dictionary = run_episode(global_step, param_dictionary, start_time)
+        run_id, global_step = run_episode(agent, env, pub_result=pub_result,
+                                          pub_get_action=pub_get_action, run_id=run_id,
+                                          global_step=global_step, param_dictionary=param_dictionary,
+                                          start_time=start_time, scores=scores, episodes=episodes,
+                                          log=log, log_title=log_utils, episode_number=episode_number)
+
         log.save(save_to_db=True)
-        if agent.epsilon > agent.epsilon_min:
-            agent.epsilon *= agent.epsilon_decay
+
+    if agent.epsilon > agent.epsilon_min:
+        agent.epsilon *= agent.epsilon_decay
