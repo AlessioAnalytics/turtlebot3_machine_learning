@@ -37,17 +37,17 @@ def run_episode(env, global_step, param_dictionary, start_time):
     get_action = Float32MultiArray()
 
     state = env.reset()
-    goal = env.getGoal()
     score = 0
 
     for episode_step in range(agent.episode_max_steps):
+        goal = env.getGoal()
         action = agent.get_action(state, goal)
 
         next_state, reward, done = env.step(action)
-        her_goal = env.getPosition()
-        agent.her.append_episode_replay(state, action, goal, her_goal, reward, next_state, done)
+        position = env.getPosition()
+        agent.her.append_episode_replay(state, action, goal, position, reward, next_state, done)
         log_utils.make_log_entry(log, log_title, run_id, episode_number,
-                                 episode_step, state, next_state, goal, her_goal,
+                                 episode_step, state, next_state, goal, position,
                                  action, agent.q_values,
                                  reward, done)
 
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     goal_size = 2
 
     run_id = int(time.time())
-    log_title = "turtlebot3_position"
+    log_title = "turtlebot3_dqn"
     log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=goal_size)
     env = Env.Env(action_size)
     agent = ReinforceAgent(state_size, action_size, goal_size, stage)

@@ -39,17 +39,17 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
     get_action = Float32MultiArray()
 
     state = env.reset()
-    goal = env.getGoal()
     score = 0
 
     for episode_step in range(agent.episode_max_step):
+        goal = env.getGoal()
         action = agent.get_action(state)
 
         next_state, reward, done = env.step(action)
-
+        position = env.getPosition()
         agent.append_memory(state, action, reward, next_state, done)
         log_utils.make_log_entry(log, log_title, run_id, episode_number,
-                                 episode_step, state, next_state, goal,
+                                 episode_step, state, next_state, goal, position,
                                  action, agent.q_value,
                                  reward, done)
 
@@ -102,6 +102,7 @@ if __name__ == '__main__':
 
     state_size = 28
     action_size = 5
+    goal_size = 2
 
     run_id = int(time.time())
     log_title = "turtlebot3_dqn"
@@ -125,5 +126,5 @@ if __name__ == '__main__':
 
         log.save(save_to_db=True)
 
-    if agent.epsilon > agent.epsilon_min:
-        agent.epsilon *= agent.epsilon_decay
+        if agent.epsilon > agent.epsilon_min:
+            agent.epsilon *= agent.epsilon_decay
