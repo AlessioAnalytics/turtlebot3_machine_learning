@@ -105,7 +105,7 @@ class Env():
 
     def setReward(self, state, done, action):
 
-        reward = (self.previous_goal_distance-self.current_goal_distance)
+        reward = (self.previous_goal_distance-self.current_goal_distance) - 0.1
         self.previous_goal_distance = self.current_goal_distance
 
         if done:
