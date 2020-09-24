@@ -33,6 +33,8 @@ class Env():
         self.goal_x = 0
         self.goal_y = 0
         self.heading = 0
+        self.current_goal_distance = None
+        self.previous_goal_distance = None
         self.action_size = action_size
         self.initGoal = True
         self.get_goalbox = False
@@ -51,8 +53,8 @@ class Env():
         return [self.position.x, self.position.y]
 
     def getGoalDistace(self):
-        start_goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
-        return start_goal_distance
+        goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
+        return goal_distance
 
     def getOdometry(self, odom):
         self.position = odom.pose.pose.position
@@ -70,30 +72,35 @@ class Env():
             heading += 2 * pi
 
         self.heading = round(heading, 2)
+        self.current_goal_distance = self.getGoalDistace()
 
     def getState(self, scan):
-        scan_range = []
-        heading = self.heading
-        min_range = 0.13
         done = False
+        min_range = 0.13
+        scan_normalize_const = 3.5
+        goal_distance_normalize = 2
+        heading_normalize = math.pi
 
-        for i in range(len(scan.ranges)):
+        scan_range = []
+        n_scan_ranges = len(scan.ranges)
+        for i in range(n_scan_ranges):
             if scan.ranges[i] == float('Inf'):
-                scan_range.append(3.5)
+                scan_range.append(1)
             elif np.isnan(scan.ranges[i]):
                 scan_range.append(0)
             else:
-                scan_range.append(scan.ranges[i])
+                scan_range.append(scan.ranges[i]/scan_normalize_const)
 
-        obstacle_min_range = round(min(scan_range), 2)
-        obstacle_angle = np.argmin(scan_range)
-        if min_range > min(scan_range) > 0:
+        if min_range/scan_normalize_const > min(scan_range) > 0:
             done = True
 
-        current_goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y),2)
-        if current_goal_distance < 0.2:
+        if self.current_goal_distance < 0.2:
             self.get_goalbox = True
 
+        heading = self.heading/heading_normalize
+        current_goal_distance = self.current_goal_distance / goal_distance_normalize
+        obstacle_min_range = round(min(scan_range)/scan_normalize_const, 2)
+        obstacle_angle = np.argmin(scan_range)/n_scan_ranges*2-1
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def setReward(self, state, done, action):
@@ -120,6 +127,7 @@ class Env():
             self.pub_cmd_vel.publish(Twist())
             self.goal_x, self.goal_y = self.respawn_goal.getPosition(True, delete=True)
             self.start_goal_distance = self.getGoalDistace()
+            self.previous_goal_distance = self.start_goal_distance
             self.get_goalbox = False
 
         return reward
@@ -165,6 +173,7 @@ class Env():
             self.initGoal = False
 
         self.start_goal_distance = self.getGoalDistace()
+        self.previous_goal_distance = self.start_goal_distance
         state, done = self.getState(data)
 
         return np.asarray(state)
