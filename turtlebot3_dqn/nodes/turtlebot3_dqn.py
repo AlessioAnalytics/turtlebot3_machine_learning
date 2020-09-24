@@ -47,7 +47,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
 
         next_state, reward, done = env.step(action)
 
-        if episode_step >= 500:
+        if episode_step >= agent.episode_max_step - 1:
             rospy.loginfo("Time out!!")
             if goal == start_goal:
                 reward = -200
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     log_title = "turtlebot3_dqn"
     log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=2)
     env = Env.Env(action_size)
-    agent = ReinforceAgent(state_size, action_size, stage)
+    agent = ReinforceAgent(state_size, action_size, stage, episode_max_step=1000)
 
     scores, episodes = [], []
     global_step = 0
@@ -125,7 +125,7 @@ if __name__ == '__main__':
                                           pub_get_action=pub_get_action, run_id=run_id,
                                           global_step=global_step, param_dictionary=param_dictionary,
                                           start_time=start_time, scores=scores, episodes=episodes,
-                                          log=log, log_title=log_utils, episode_number=episode_number)
+                                          log=log, log_title=log_title, episode_number=episode_number)
 
         log.save()
 
