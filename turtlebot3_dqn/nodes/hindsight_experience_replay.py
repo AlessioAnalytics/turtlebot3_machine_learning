@@ -69,10 +69,10 @@ class HindsightExperienceReplay:
             sample_state, sample_action, _, position, _, sample_next_state, sample_done = self.episode_replay[t]
 
             # TODO map the following to a reward_function that is passed to the class
-            if np.linalg.norm(np.asarray(position) - np.asarray(goal_position)) < 0.13:
-                sample_reward = 200
+            if np.linalg.norm(np.asarray(position) - np.asarray(goal_position)) < 0.2:
+                sample_reward = 1
             else:
-                sample_reward = 0
+                sample_reward = -0.05
 
             sample_transition = (
                 sample_state, sample_action, goal_position, sample_reward, sample_next_state, sample_done)

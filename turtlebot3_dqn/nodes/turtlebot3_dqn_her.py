@@ -38,12 +38,19 @@ def run_episode(env, global_step, param_dictionary, start_time):
 
     state = env.reset()
     score = 0
-
+    start_goal = env.getGoal()
     for episode_step in range(agent.episode_max_steps):
         goal = env.getGoal()
         action = agent.get_action(state, goal)
 
         next_state, reward, done = env.step(action)
+
+        if episode_step >= 500:
+            rospy.loginfo("Time out!!")
+            if goal == start_goal:
+                reward = -10
+            done = True
+
         position = env.getPosition()
         agent.her.append_episode_replay(state, action, goal, position, reward, next_state, done)
         log_utils.make_log_entry(log, log_title, run_id, episode_number,
@@ -64,10 +71,6 @@ def run_episode(env, global_step, param_dictionary, start_time):
 
         if episode_number % 10 == 0 and episode_step == 0:
             save_model(agent, param_dictionary, episode_number)
-
-        if episode_step >= 500:
-            rospy.loginfo("Time out!!")
-            done = True
 
         if done:
             result.data = [score, np.max(agent.q_values)]

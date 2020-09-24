@@ -15,13 +15,4 @@
     </node>
   </group>
 
-  <group if="$(eval arg('stage') == 3)">
-    <node pkg="turtlebot3_dqn"  type="moving_obstacle.py" name="moving_obstacle" output="screen" />
-  </group>
-
-  <group if="$(eval arg('stage') == 4)">
-    <node pkg="turtlebot3_dqn" type="combination_obstacle_1.py" name="combination_obstacle_1" output="screen" />
-    <node pkg="turtlebot3_dqn" type="combination_obstacle_2.py" name="combination_obstacle_2" output="screen" />
-  </group>
-
 </launch>
