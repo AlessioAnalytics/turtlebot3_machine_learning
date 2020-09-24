@@ -15,171 +15,91 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert #
+# Authors: Gilbert, Widowski, Mueller #
 
 import rospy
 import os
-import json
 import numpy as np
-import random
 import time
 import sys
 
 from utils import log_utils
+from utils.model_utils import save_model, log_episode_info
+from dqn_her_agent import ReinforceAgent
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from hindsight_experience_replay import HindsightExperienceReplay
 from std_msgs.msg import Float32MultiArray
-from keras.models import Sequential, load_model
-from keras.optimizers import RMSprop
-from keras.layers import Dense, Dropout, Activation
 from importlib import import_module
 
-EPISODES = 3000
 
+def run_episode(env, global_step, param_dictionary, start_time):
+    result = Float32MultiArray()
+    get_action = Float32MultiArray()
 
-class ReinforceAgent():
-    def __init__(self, state_size, action_size, goal_size):
-        self.pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
-        self.dirPath = os.path.dirname(os.path.realpath(__file__))
-        self.dirPath = self.dirPath.replace('turtlebot3_dqn/nodes', 'turtlebot3_dqn/save_model/weights_')
-        self.result = Float32MultiArray()
+    state = env.reset()
+    score = 0
+    start_goal = env.getGoal()
+    for episode_step in range(agent.episode_max_steps):
+        goal = env.getGoal()
+        action = agent.get_action(state, goal)
 
-        self.load_model = True
-        self.load_episode = "latest"
-        self.state_size = state_size
-        self.action_size = action_size
-        self.goal_size = goal_size
-        self.episode_step = 6000
-        self.target_update = 2000
-        self.discount_factor = 0.99
-        self.learning_rate = 0.00025
-        self.epsilon = 1.0
-        self.epsilon_decay = 0.99
-        self.epsilon_min = 0.05
-        self.batch_size = 64
-        self.train_start = 64
-        self.entropy_regularisation = 0.1
-        self.her = HindsightExperienceReplay(k=1, strategie="future",maxlen=1000000, batch_size=self.batch_size)
+        next_state, reward, done = env.step(action)
 
-        self.model = self.buildModel()
-        self.target_model = self.buildModel()
+        if episode_step >= 500:
+            rospy.loginfo("Time out!!")
+            if goal == start_goal:
+                reward = -10
+            done = True
 
-        self.updateTargetModel()
-        if self.load_model:
-            if not os.path.isfile(self.dirPath + str(self.load_episode) + ".h5"):
-                print("file: ", str(self.dirPath + str(self.load_episode) + ".h5"), "is not present!")
-                print("continue with randomly initialized model")
-                self.load_episode = 0
+        position = env.getPosition()
+        agent.her.append_episode_replay(state, action, goal, position, reward, next_state, done)
+        log_utils.make_log_entry(log, log_title, run_id, episode_number,
+                                 episode_step, state, next_state, goal, position,
+                                 action, agent.q_values,
+                                 reward, done)
+
+        if agent.her.n_entrys >= agent.train_start:
+            if global_step <= agent.target_update:
+                agent.train_model()
             else:
-                self.model.set_weights(load_model(self.dirPath + str(self.load_episode) + ".h5").get_weights())
+                agent.train_model(target=True)
 
-                with open(self.dirPath + str(self.load_episode) + '.json') as outfile:
-                    param = json.load(outfile)
+        score += reward
+        state = next_state
+        get_action.data = [action, score, reward]
+        pub_get_action.publish(get_action)
 
-                self.epsilon = param.get('epsilon')
-                self.load_episode = param.get('episode')
+        if episode_number % 10 == 0 and episode_step == 0:
+            save_model(agent, param_dictionary, episode_number)
 
-                print("latest model restored")
-                print("previously trained for", str(self.load_episode), "episodes")
-
-    def buildModel(self):
-        model = Sequential()
-        dropout = 0.2
-
-        model.add(Dense(64, input_shape=(self.state_size+self.goal_size,), activation='relu', kernel_initializer='lecun_uniform'))
-
-        model.add(Dense(64, activation='relu', kernel_initializer='lecun_uniform'))
-        model.add(Dropout(dropout))
-
-        model.add(Dense(self.action_size, kernel_initializer='lecun_uniform'))
-        model.add(Activation('linear'))
-        model.compile(loss='mse', optimizer=RMSprop(lr=self.learning_rate, rho=0.9, epsilon=1e-06))
-        model.summary()
-
-        return model
-
-    def softmax(self, x):
-        return np.exp(x)/np.sum(np.exp(x))
-
-    def entropy(self, p):
-        return -np.sum(p*np.log(p))
-
-    def getQvalue(self, reward, next_target, done):
         if done:
-            q_value = reward
-        else:
-            q_value = reward + self.discount_factor * np.amax(next_target)
-            q_value += self.entropy_regularisation * self.entropy(self.softmax(next_target))
-        return q_value
+            result.data = [score, np.max(agent.q_values)]
+            pub_result.publish(result)
+            agent.update_target_model()
+            scores.append(score)
+            episodes.append(episode_number)
+            log_episode_info(episode_number, score, agent, start_time)
 
-    def updateTargetModel(self):
-        self.target_model.set_weights(self.model.get_weights())
+            param_keys = ['epsilon', 'episode']
+            param_values = [agent.epsilon, episode_number]
+            param_dictionary = dict(zip(param_keys, param_values))
 
-    def predict(self, state, goal):
-        features = np.hstack((np.asarray(state).flatten(), np.asarray(goal).flatten()))
-        return self.model.predict(features.reshape(1, len(state)+len(goal)))
+            return global_step, param_dictionary
 
-    def predict_target(self, state, goal):
-        features = np.hstack((np.asarray(state).flatten(), np.asarray(goal).flatten()))
-        return self.target_model.predict(features.reshape(1, len(state)+len(goal)))
-
-
-    def getAction(self, state, goal):
-        if np.random.rand() <= self.epsilon:
-            self.q_value = np.zeros(self.action_size)
-            return random.randrange(self.action_size)
-        else:
-            q_value = self.predict(state, goal)
-            self.q_value = q_value
-            return np.argmax(q_value[0])
-
-    def trainModel(self, target=False):
-        mini_batch = self.her.sample_memory()
-        X_batch = np.empty((0, self.state_size + self.goal_size), dtype=np.float64)
-        Y_batch = np.empty((0, self.action_size), dtype=np.float64)
-
-        for i in range(self.batch_size):
-            states = mini_batch[i][0]
-            actions = mini_batch[i][1]
-            goals = mini_batch[i][2]
-            rewards = mini_batch[i][3]
-            next_states = mini_batch[i][4]
-            dones = mini_batch[i][5]
-
-            q_value = self.predict(states, goals)
-            self.q_value = q_value
-
-            if target:
-                next_target = self.predict_target(next_states, goals)
-            else:
-                next_target = self.predict(next_states, goals)
-
-            next_q_value = self.getQvalue(rewards, next_target, dones)
-
-            X_batch = np.append(X_batch, np.asarray([np.hstack((states, goals)).copy()]), axis=0)
-            Y_sample = q_value.copy()
-
-            Y_sample[0][actions] = next_q_value
-            Y_batch = np.append(Y_batch, np.array([Y_sample[0]]), axis=0)
-
-            if dones:
-                X_batch = np.append(X_batch, np.asarray([np.hstack((next_states, goals)).copy()]), axis=0)
-                Y_batch = np.append(Y_batch, np.array([[rewards] * self.action_size]), axis=0)
-
-        self.model.fit(X_batch, Y_batch, batch_size=self.batch_size, epochs=1, verbose=0)
+        global_step += 1
+        if global_step % agent.target_update == 0:
+            rospy.loginfo("UPDATE TARGET NETWORK")
 
 
 if __name__ == '__main__':
-    Env = import_module("src.turtlebot3_dqn.environment_her")
+    EPISODES = 3000
 
-    rospy.init_node('turtlebot3_dqn')
+    stage = rospy.get_param("/turtlebot3_dqn/stage")
+    Env = import_module("src.turtlebot3_dqn.environment_stage_" + stage)
+    rospy.init_node('turtlebot3_dqn_stage_' + stage)
 
     pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
     pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
-
-    result = Float32MultiArray()
-    get_action = Float32MultiArray()
 
     state_size = 28
     action_size = 5
@@ -189,7 +109,7 @@ if __name__ == '__main__':
     log_title = "turtlebot3_dqn"
     log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=goal_size)
     env = Env.Env(action_size)
-    agent = ReinforceAgent(state_size, action_size, goal_size)
+    agent = ReinforceAgent(state_size, action_size, goal_size, stage)
 
     scores, episodes = [], []
     global_step = 0
@@ -199,69 +119,7 @@ if __name__ == '__main__':
     param_dictionary = dict(zip(param_keys, param_values))
 
     for episode_number in range(agent.load_episode + 1, EPISODES):
-        done = False
-        state = env.reset()
-        score = 0
-        start_goal = env.getGoal()
-        for episode_step in range(agent.episode_step):
-            goal = env.getGoal()
-            action = agent.getAction(state, goal)
-
-            next_state, reward, done = env.step(action)
-            position = env.getPosition()
-
-            if episode_step >= 500:
-                rospy.loginfo("Time out!!")
-                if goal == start_goal:
-                    reward = -10
-                done = True
-
-            agent.her.append_episode_replay(state, action, goal, position, reward, next_state, done)
-            log_utils.make_log_entry(log, log_title, run_id, episode_number,
-                                     episode_step, state, next_state, goal, position,
-                                     action, agent.q_value,
-                                     reward, done)
-
-            if agent.her.n_entrys >= agent.train_start:
-                if global_step <= agent.target_update:
-                    agent.trainModel()
-                else:
-                    agent.trainModel(True)
-
-            score += reward
-            state = next_state
-            get_action.data = [action, score, reward]
-            pub_get_action.publish(get_action)
-
-            if episode_number % 10 == 0 and episode_step == 0:
-                agent.model.save(agent.dirPath + str(episode_number) + '.h5')
-                with open(agent.dirPath + str(episode_number) + '.json', 'w') as outfile:
-                    json.dump(param_dictionary, outfile)
-
-                agent.model.save(agent.dirPath + "latest" + '.h5')
-                with open(agent.dirPath + "latest" + '.json', 'w') as outfile:
-                    json.dump(param_dictionary, outfile)
-                    print("MODEL SAVED", param_dictionary)
-
-            if done:
-                result.data = [score, np.max(agent.q_value)]
-                pub_result.publish(result)
-                agent.updateTargetModel()
-                scores.append(score)
-                episodes.append(episode_number)
-                m, s = divmod(int(time.time() - start_time), 60)
-                h, m = divmod(m, 60)
-
-                rospy.loginfo('Run: %d Ep: %d score: %.2f memory: %d epsilon: %.2f time: %d:%02d:%02d',
-                              run_id, episode_number, score, agent.her.n_entrys, agent.epsilon, h, m, s)
-                param_keys = ['epsilon', 'episode']
-                param_values = [agent.epsilon, episode_number]
-                param_dictionary = dict(zip(param_keys, param_values))
-                break
-
-            global_step += 1
-            if global_step % agent.target_update == 0:
-                rospy.loginfo("UPDATE TARGET NETWORK")
+        global_step, param_dictionary = run_episode(env, global_step, param_dictionary, start_time)
 
         agent.her.import_episode()
         log.save(save_to_db=True)
