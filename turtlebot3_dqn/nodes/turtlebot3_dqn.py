@@ -40,7 +40,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
 
     state = env.reset()
     score = 0
-
+    start_goal = env.getGoal()
     for episode_step in range(agent.episode_max_step):
         goal = env.getGoal()
         action = agent.get_action(state)
