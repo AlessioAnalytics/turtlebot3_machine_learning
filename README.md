@@ -10,6 +10,7 @@ Enable ports for GUI to run properly:
 
 `xhost +local:root`
 
+
 Start docker container:
 
 `. docker_setup/my_start_container.sh`
@@ -20,6 +21,8 @@ In the container start simulation and agent:
 
 where $STAGE_PARAM has to be replaced with a number from 1 to 4 depending on
 the stage you want to start.
+
+If no simulation is starting on your screen make sure `$DISPLAY` is set correctly.
 
 If you run into problems with logging or database cfg files disable logging in
 turtlebot3_dqn.py
