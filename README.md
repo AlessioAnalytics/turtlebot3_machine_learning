@@ -20,8 +20,10 @@ In the container start simulation and agent:
 `. /my_scripts/start_ros.sh $STAGE_PARAM`
 
 where $STAGE_PARAM has to be replaced with a number from 1 to 4 depending on
-the stage you want to start.
+the stage you want to start. This can only be set once, if you want to change it
+afterwards you need to restart the Docker container.
 
+### Errors
 If no simulation is starting on your screen make sure `$DISPLAY` is set correctly.
 
 If you run into problems with logging or database cfg files disable logging in
