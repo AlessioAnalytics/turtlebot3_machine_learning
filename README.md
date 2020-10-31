@@ -10,10 +10,13 @@ Enable ports for GUI to run properly:
 
 `xhost +local:root`
 
+Go to the docker_setup folder and build the image:
+
+`sudo docker build . -t ros_ml`
 
 Start docker container:
 
-`. docker_setup/my_start_container.sh`
+`. my_start_container.sh`
 
 In the container start simulation and agent:
 
