@@ -6,7 +6,7 @@ from logging_script import logger
 import os
 
 
-def setup_logger(title, n_state_vals, action_dim, goal_dim, save_to_db=True,
+def setup_logger(title, n_state_vals, action_dim, goal_dim, save_to_db=False,
                  cfg_file_path='/root/cfg/db_usr_cfg.json'):
     int_keys = ["run_id", "episode", "step"]
 
