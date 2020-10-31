@@ -15,7 +15,7 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert #
+# Authors: Gilbert, Widowski, Mueller #
 
 import rospy
 import numpy as np
@@ -33,8 +33,6 @@ class Env():
         self.goal_x = 0
         self.goal_y = 0
         self.heading = 0
-        self.current_goal_distance = None
-        self.previous_goal_distance = None
         self.action_size = action_size
         self.initGoal = True
         self.get_goalbox = False
@@ -53,8 +51,8 @@ class Env():
         return [self.position.x, self.position.y]
 
     def getGoalDistace(self):
-        goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
-        return goal_distance
+        start_goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
+        return start_goal_distance
 
     def getOdometry(self, odom):
         self.position = odom.pose.pose.position
@@ -72,73 +70,52 @@ class Env():
             heading += 2 * pi
 
         self.heading = round(heading, 2)
-        self.current_goal_distance = self.getGoalDistace()
 
     def getState(self, scan):
-        done = False
-        min_range = 0.13
-        scan_normalize_const = 3.5
-        goal_distance_normalize = 2
-        heading_normalize = math.pi
-
         scan_range = []
-        n_scan_ranges = len(scan.ranges)
-        for i in range(n_scan_ranges):
+        heading = self.heading
+        min_range = 0.13
+        done = False
+
+        for i in range(len(scan.ranges)):
             if scan.ranges[i] == float('Inf'):
-                scan_range.append(1)
+                scan_range.append(3.5)
             elif np.isnan(scan.ranges[i]):
                 scan_range.append(0)
             else:
-                scan_range.append(scan.ranges[i]/scan_normalize_const)
+                scan_range.append(scan.ranges[i])
 
-        if min_range/scan_normalize_const > min(scan_range) > 0:
+        obstacle_min_range = round(min(scan_range), 2)
+        obstacle_angle = np.argmin(scan_range)
+        if min_range > min(scan_range) > 0:
             done = True
 
-        if self.current_goal_distance < 0.2:
+        current_goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y),2)
+        if current_goal_distance < 0.2:
             self.get_goalbox = True
 
-        heading = self.heading/heading_normalize
-        current_goal_distance = self.current_goal_distance / goal_distance_normalize
-        obstacle_min_range = round(min(scan_range)/scan_normalize_const, 2)
-        obstacle_angle = np.argmin(scan_range)/n_scan_ranges*2-1
-        return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
+        return scan_range + [self.position.x, self.position.y, obstacle_min_range, obstacle_angle], done
 
-    def setReward(self, state, done, action):
-        yaw_reward = []
-        obstacle_min_range = state[-2]
-        current_goal_distance = state[-3]
-        heading = state[-4]
+    def setReward(self, done, action):
+        reward = -0.001
 
-        for i in range(5):
-            angle = -pi / 4 + heading + (pi / 8 * i) + pi / 2
-            tr = 1 - 4 * math.fabs(0.5 - math.modf(0.25 + 0.5 * angle % (2 * math.pi) / math.pi)[0])
-            yaw_reward.append(tr)
-
-        distance_rate = 2 ** (current_goal_distance / self.start_goal_distance)
-
-        if obstacle_min_range < 0.5:
-            ob_reward = -5
-        else:
-            ob_reward = 0
-
-        reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate) + ob_reward
+        if not action == 2:
+            reward -= 0.001
 
         if done:
             rospy.loginfo("Collision!!")
-            reward = -500
+            reward = -10
             self.pub_cmd_vel.publish(Twist())
 
         if self.get_goalbox:
             rospy.loginfo("Goal!!")
-            reward = 1000
+            reward = 1
             self.pub_cmd_vel.publish(Twist())
             self.goal_x, self.goal_y = self.respawn_goal.getPosition(True, delete=True)
             self.start_goal_distance = self.getGoalDistace()
-            self.previous_goal_distance = self.start_goal_distance
             self.get_goalbox = False
 
         return reward
-
 
     def step(self, action):
         max_angular_vel = 1.5
@@ -157,7 +134,7 @@ class Env():
                 pass
 
         state, done = self.getState(data)
-        reward = self.setReward(state, done, action)
+        reward = self.setReward(done, action)
 
         return np.asarray(state), reward, done
 
@@ -180,7 +157,6 @@ class Env():
             self.initGoal = False
 
         self.start_goal_distance = self.getGoalDistace()
-        self.previous_goal_distance = self.start_goal_distance
         state, done = self.getState(data)
 
         return np.asarray(state)

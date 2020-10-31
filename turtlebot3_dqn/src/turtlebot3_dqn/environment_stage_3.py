@@ -33,6 +33,8 @@ class Env():
         self.goal_x = 0
         self.goal_y = 0
         self.heading = 0
+        self.current_goal_distance = None
+        self.previous_goal_distance = None
         self.action_size = action_size
         self.initGoal = True
         self.get_goalbox = False
@@ -45,12 +47,13 @@ class Env():
         self.respawn_goal = Respawn()
 
     def getGoal(self):
-        return self.goal_x, self.goal_y
+        return [self.goal_x, self.goal_y]
 
+    def getPosition(self):
+        return [self.position.x, self.position.y]
 
     def getGoalDistace(self):
         goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
-
         return goal_distance
 
     def getOdometry(self, odom):
@@ -69,35 +72,40 @@ class Env():
             heading += 2 * pi
 
         self.heading = round(heading, 2)
+        self.current_goal_distance = self.getGoalDistace()
 
     def getState(self, scan):
-        scan_range = []
-        heading = self.heading
-        min_range = 0.13
         done = False
+        min_range = 0.13
+        scan_normalize_const = 3.5
+        goal_distance_normalize = 2
+        heading_normalize = math.pi
 
-        for i in range(len(scan.ranges)):
+        scan_range = []
+        n_scan_ranges = len(scan.ranges)
+        for i in range(n_scan_ranges):
             if scan.ranges[i] == float('Inf'):
-                scan_range.append(3.5)
+                scan_range.append(1)
             elif np.isnan(scan.ranges[i]):
                 scan_range.append(0)
             else:
-                scan_range.append(scan.ranges[i])
+                scan_range.append(scan.ranges[i]/scan_normalize_const)
 
-        obstacle_min_range = round(min(scan_range), 2)
-        obstacle_angle = np.argmin(scan_range)
-        if min_range > min(scan_range) > 0:
+        if min_range/scan_normalize_const > min(scan_range) > 0:
             done = True
 
-        current_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y),2)
-        if current_distance < 0.2:
+        if self.current_goal_distance < 0.2:
             self.get_goalbox = True
 
-        return scan_range + [heading, current_distance, obstacle_min_range, obstacle_angle], done
+        heading = self.heading/heading_normalize
+        current_goal_distance = self.current_goal_distance / goal_distance_normalize
+        obstacle_min_range = round(min(scan_range)/scan_normalize_const, 2)
+        obstacle_angle = np.argmin(scan_range)/n_scan_ranges*2-1
+        return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def setReward(self, state, done, action):
         yaw_reward = []
-        current_distance = state[-3]
+        current_goal_distance = state[-3]
         heading = state[-4]
 
         for i in range(5):
@@ -105,7 +113,7 @@ class Env():
             tr = 1 - 4 * math.fabs(0.5 - math.modf(0.25 + 0.5 * angle % (2 * math.pi) / math.pi)[0])
             yaw_reward.append(tr)
 
-        distance_rate = 2 ** (current_distance / self.goal_distance)
+        distance_rate = 2 ** (current_goal_distance / self.start_goal_distance)
         reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate)
 
         if done:
@@ -118,10 +126,12 @@ class Env():
             reward = 200
             self.pub_cmd_vel.publish(Twist())
             self.goal_x, self.goal_y = self.respawn_goal.getPosition(True, delete=True)
-            self.goal_distance = self.getGoalDistace()
+            self.start_goal_distance = self.getGoalDistace()
+            self.previous_goal_distance = self.start_goal_distance
             self.get_goalbox = False
 
         return reward
+
 
     def step(self, action):
         max_angular_vel = 1.5
@@ -162,7 +172,8 @@ class Env():
             self.goal_x, self.goal_y = self.respawn_goal.getPosition()
             self.initGoal = False
 
-        self.goal_distance = self.getGoalDistace()
+        self.start_goal_distance = self.getGoalDistace()
+        self.previous_goal_distance = self.start_goal_distance
         state, done = self.getState(data)
 
         return np.asarray(state)
