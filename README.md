@@ -10,10 +10,13 @@ Enable ports for GUI to run properly:
 
 `xhost +local:root`
 
+Go to the docker_setup folder and build the image:
+
+`sudo docker build . -t ros_ml`
 
 Start docker container:
 
-`. docker_setup/my_start_container.sh`
+`. docker_start.sh`
 
 In the container start simulation and agent:
 
@@ -26,14 +29,18 @@ afterwards you need to restart the Docker container.
 ### Errors
 If no simulation is starting on your screen make sure `$DISPLAY` is set correctly.
 
-If you run into problems with logging or database cfg files disable logging in
-turtlebot3_dqn.py
 
 ## Tips 
 ### Speedup Simulation
 
 In the Gazebo Gui on the left side on the world tab click Physics and set real time update to 0.
 This will make Gazebo run as fast as possible.
+
+### Save Model
+
+
+If you want to save your model to your hard drive you will need to map a volume
+in the `docker_start.sh` file and then enable save_model_to_disk in `turtlebot3_dqn.py
 
 ## ROBOTIS Content for TurtleBot3
 - [ROBOTIS e-Manual for TurtleBot3](http://turtlebot3.robotis.com/)
