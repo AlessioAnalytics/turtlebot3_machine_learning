@@ -31,7 +31,7 @@ If no simulation is starting on your screen make sure `$DISPLAY` is set correctl
 
 
 ## Tips 
-### Speedup Simulation`
+### Speedup Simulation
 
 In the Gazebo Gui on the left side on the world tab click Physics and set real time update to 0.
 This will make Gazebo run as fast as possible.
