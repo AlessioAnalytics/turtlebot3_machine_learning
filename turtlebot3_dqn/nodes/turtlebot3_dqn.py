@@ -34,7 +34,7 @@ from importlib import import_module
 
 def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
                 global_step, param_dictionary, start_time, scores, episodes,
-                log, log_title):
+                log, log_title, save_model_to_disk):
     result = Float32MultiArray()
     get_action = Float32MultiArray()
 
@@ -57,8 +57,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
         agent.append_memory(state, action, reward, next_state, done)
         log_utils.make_log_entry(log, log_title, run_id, episode_number,
                                  episode_step, state, next_state, goal, position,
-                                 action, agent.q_value,
-                                 reward, done)
+                                 action, agent.q_value, reward, done)
 
         if len(agent.memory) >= agent.train_start:
             if global_step <= agent.target_update:
@@ -71,7 +70,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
         get_action.data = [action, score, reward]
         pub_get_action.publish(get_action)
 
-        if episode_number % 10 == 0 and episode_step == 0:
+        if save_model_to_disk and episode_number % 10 == 0 and episode_step == 0:
             save_model(agent, param_dictionary, episode_number)
 
         if done:
@@ -125,7 +124,8 @@ if __name__ == '__main__':
                                           pub_get_action=pub_get_action, run_id=run_id,
                                           global_step=global_step, param_dictionary=param_dictionary,
                                           start_time=start_time, scores=scores, episodes=episodes,
-                                          log=log, log_title=log_title, episode_number=episode_number)
+                                          log=log, log_title=log_title, episode_number=episode_number,
+                                          save_model_to_disk=False)
 
         log.save()
 
