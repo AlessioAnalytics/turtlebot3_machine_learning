@@ -20,11 +20,12 @@ Start docker container:
 
 In the container start simulation and agent:
 
-`. /my_scripts/start_ros.sh $STAGE_PARAM`
+`. /my_scripts/start_ros.sh <$STAGE_PARAM>`
 
-where $STAGE_PARAM has to be replaced with a number from 1 to 4 depending on
-the stage you want to start. This can only be set once, if you want to change it
-afterwards you need to restart the Docker container.
+where `<$STAGE_PARAM>` defaults to 1 and can be replaced with a number from 1 to 4 
+depending on the stage you want to start. 
+This can only be set once, if you want to change it afterwards you need to restart the
+Docker container.
 
 ### Errors
 If no simulation is starting on your screen make sure `$DISPLAY` is set correctly.
@@ -40,7 +41,7 @@ This will make Gazebo run as fast as possible.
 
 
 If you want to save your model to your hard drive you will need to map a volume
-in the `docker_start.sh` file and then enable save_model_to_disk in `turtlebot3_dqn.py
+in the `docker_start.sh` file and then enable save_model_to_disk in `turtlebot3_dqn.py`
 
 ## ROBOTIS Content for TurtleBot3
 - [ROBOTIS e-Manual for TurtleBot3](http://turtlebot3.robotis.com/)
