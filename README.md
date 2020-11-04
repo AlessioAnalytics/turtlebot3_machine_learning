@@ -32,16 +32,20 @@ If no simulation is starting on your screen make sure `$DISPLAY` is set correctl
 
 
 ## Tips 
+### Save Model
+
+If you want to save your model to your hard drive you will need to map a volume
+in the `docker_start.sh` file and then enable save_model_to_disk in `turtlebot3_dqn.py`
+
 ### Speedup Simulation
 
 In the Gazebo Gui on the left side on the world tab click Physics and set real time update to 0.
 This will make Gazebo run as fast as possible.
 
-### Save Model
+### Increase FPS
 
+To increase FPS change view angle to orthographic.
 
-If you want to save your model to your hard drive you will need to map a volume
-in the `docker_start.sh` file and then enable save_model_to_disk in `turtlebot3_dqn.py`
 
 ## ROBOTIS Content for TurtleBot3
 - [ROBOTIS e-Manual for TurtleBot3](http://turtlebot3.robotis.com/)
