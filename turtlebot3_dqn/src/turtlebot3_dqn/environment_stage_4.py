@@ -121,11 +121,12 @@ class Env():
         else:
             ob_reward = 0
 
-        reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate) + ob_reward
+        # reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate) + ob_reward
+        reward = current_goal_distance
 
         if done:
             rospy.loginfo("Collision!!")
-            reward = -500
+            reward = -1000
             self.pub_cmd_vel.publish(Twist())
 
         if self.get_goalbox:
