@@ -38,7 +38,6 @@ catkin_package(
 ################################################################################
 catkin_install_python(PROGRAMS
   nodes/turtlebot3_dqn.py
-  nodes/turtlebot3_dqn_her.py
   nodes/result_graph.py
   nodes/action_graph.py
   nodes/moving_obstacle.py
