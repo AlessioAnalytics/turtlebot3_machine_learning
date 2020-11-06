@@ -122,7 +122,7 @@ class Env():
             ob_reward = 0
 
         # reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate) + ob_reward
-        reward = current_goal_distance
+        reward = -current_goal_distance
 
         if done:
             rospy.loginfo("Collision!!")

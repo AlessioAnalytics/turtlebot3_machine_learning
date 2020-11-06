@@ -48,7 +48,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
 
         if episode_step >= agent.episode_max_step - 1:
             rospy.loginfo("Time out!!")
-#            if goal == start_goal: punish for reaching no goal
+#            if goal == start_goal: #punish for reaching no goal
 #                reward = -200
             done = True
 
