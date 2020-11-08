@@ -15,7 +15,7 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert #
+# Authors: Gilbert, Mueller#
 
 import rospy
 import numpy as np
@@ -27,6 +27,8 @@ from nav_msgs.msg import Odometry
 from std_srvs.srv import Empty
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from respawnGoal import Respawn
+import reward_service
+
 
 class Env():
     def __init__(self, action_size):
@@ -37,7 +39,7 @@ class Env():
         self.previous_goal_distance = None
         self.action_size = action_size
         self.initGoal = True
-        self.get_goalbox = False
+        self.goal_reached = False
         self.position = Pose()
         self.pub_cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=5)
         self.sub_odom = rospy.Subscriber('odom', Odometry, self.getOdometry)
@@ -89,44 +91,39 @@ class Env():
             elif np.isnan(scan.ranges[i]):
                 scan_range.append(0)
             else:
-                scan_range.append(scan.ranges[i]/scan_normalize_const)
+                scan_range.append(scan.ranges[i] / scan_normalize_const)
 
-        if min_range/scan_normalize_const > min(scan_range) > 0:
+        if min_range / scan_normalize_const > min(scan_range) > 0:
             done = True
 
         if self.current_goal_distance < 0.2:
-            self.get_goalbox = True
+            self.goal_reached = True
 
-        heading = self.heading/heading_normalize
+        heading = self.heading / heading_normalize
         current_goal_distance = self.current_goal_distance / goal_distance_normalize
-        obstacle_min_range = round(min(scan_range)/scan_normalize_const, 2)
-        obstacle_angle = np.argmin(scan_range)/n_scan_ranges*2-1
+        obstacle_min_range = round(min(scan_range) / scan_normalize_const, 2)
+        obstacle_angle = np.argmin(scan_range) / n_scan_ranges * 2 - 1
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def setReward(self, state, done, action):
-
-        reward = (self.previous_goal_distance-self.current_goal_distance) - 0.1
-        self.previous_goal_distance = self.current_goal_distance
-
+        reward = reward_service.get_reward(self.goal_reached, done, self.getGoalDistace())
         if done:
             rospy.loginfo("Collision!!")
-            reward = -200
             self.pub_cmd_vel.publish(Twist())
 
-        if self.get_goalbox:
+        if self.goal_reached:
             rospy.loginfo("Goal!!")
-            reward = 200
             self.pub_cmd_vel.publish(Twist())
             self.goal_x, self.goal_y = self.respawn_goal.getPosition(True, delete=True)
             self.start_goal_distance = self.getGoalDistace()
             self.previous_goal_distance = self.start_goal_distance
-            self.get_goalbox = False
+            self.goal_reached = False
 
         return reward
 
     def step(self, action):
         max_angular_vel = 1.5
-        ang_vel = ((self.action_size - 1)/2 - action) * max_angular_vel * 0.5
+        ang_vel = ((self.action_size - 1) / 2 - action) * max_angular_vel * 0.5
 
         vel_cmd = Twist()
         vel_cmd.linear.x = 0.15

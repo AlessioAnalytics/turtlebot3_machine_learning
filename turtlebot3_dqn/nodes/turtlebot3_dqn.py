@@ -40,7 +40,6 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
 
     state = env.reset()
     score = 0
-    start_goal = env.getGoal()
     for episode_step in range(agent.episode_max_step):
         goal = env.getGoal()
         action = agent.get_action(state)
@@ -48,8 +47,6 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
 
         if episode_step >= agent.episode_max_step - 1:
             rospy.loginfo("Time out!!")
-#            if goal == start_goal: #punish for reaching no goal
-#                reward = -200
             done = True
 
         position = env.getPosition()
@@ -95,8 +92,8 @@ if __name__ == '__main__':
     EPISODES = 3000
 
     stage = rospy.get_param("/turtlebot3_dqn/stage")
-    Env = import_module("src.turtlebot3_dqn.environment_stage_" + stage)
-    rospy.init_node('turtlebot3_dqn_stage_' + stage)
+    Env = import_module("src.turtlebot3_dqn.environment")  # TODO change import to normal import
+    rospy.init_node('turtlebot3_dqn_stage_' + stage)  # TODO is this necessary
 
     pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
     pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
@@ -130,4 +127,3 @@ if __name__ == '__main__':
 
         if agent.epsilon > agent.epsilon_min:
             agent.epsilon *= agent.epsilon_decay
-
