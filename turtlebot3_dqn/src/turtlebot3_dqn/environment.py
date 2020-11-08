@@ -30,7 +30,7 @@ from respawnGoal import Respawn
 import reward_service
 
 
-class Env():
+class Env:
     def __init__(self, action_size):
         self.goal_x = 0
         self.goal_y = 0
@@ -42,23 +42,24 @@ class Env():
         self.goal_reached = False
         self.position = Pose()
         self.pub_cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=5)
-        self.sub_odom = rospy.Subscriber('odom', Odometry, self.getOdometry)
+        self.sub_odom = rospy.Subscriber('odom', Odometry, self.get_odometry)
         self.reset_proxy = rospy.ServiceProxy('gazebo/reset_simulation', Empty)
         self.unpause_proxy = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
         self.pause_proxy = rospy.ServiceProxy('gazebo/pause_physics', Empty)
         self.respawn_goal = Respawn()
+        self.start_goal_distance = 0
 
-    def getGoal(self):
+    def get_goal(self):
         return [self.goal_x, self.goal_y]
 
-    def getPosition(self):
+    def get_position(self):
         return [self.position.x, self.position.y]
 
-    def getGoalDistace(self):
+    def get_goal_distance(self):
         goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
         return goal_distance
 
-    def getOdometry(self, odom):
+    def get_odometry(self, odom):
         self.position = odom.pose.pose.position
         orientation = odom.pose.pose.orientation
         orientation_list = [orientation.x, orientation.y, orientation.z, orientation.w]
@@ -74,9 +75,9 @@ class Env():
             heading += 2 * pi
 
         self.heading = round(heading, 2)
-        self.current_goal_distance = self.getGoalDistace()
+        self.current_goal_distance = self.get_goal_distance()
 
-    def getState(self, scan):
+    def get_state(self, scan):
         done = False
         min_range = 0.13
         scan_normalize_const = 3.5
@@ -105,8 +106,8 @@ class Env():
         obstacle_angle = np.argmin(scan_range) / n_scan_ranges * 2 - 1
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
-    def setReward(self, state, done, action):
-        reward = reward_service.get_reward(self.goal_reached, done, self.getGoalDistace())
+    def get_reward(self, state, done, action):
+        reward = reward_service.get_reward(self.goal_reached, done, self.get_goal_distance())
         if done:
             rospy.loginfo("Collision!!")
             self.pub_cmd_vel.publish(Twist())
@@ -114,8 +115,8 @@ class Env():
         if self.goal_reached:
             rospy.loginfo("Goal!!")
             self.pub_cmd_vel.publish(Twist())
-            self.goal_x, self.goal_y = self.respawn_goal.getPosition(True, delete=True)
-            self.start_goal_distance = self.getGoalDistace()
+            self.goal_x, self.goal_y = self.respawn_goal.get_position(True, delete=True)
+            self.start_goal_distance = self.get_goal_distance()
             self.previous_goal_distance = self.start_goal_distance
             self.goal_reached = False
 
@@ -137,8 +138,8 @@ class Env():
             except:
                 pass
 
-        state, done = self.getState(data)
-        reward = self.setReward(state, done, action)
+        state, done = self.get_state(data)
+        reward = self.get_reward(state, done, action)
 
         return np.asarray(state), reward, done
 
@@ -157,11 +158,11 @@ class Env():
                 pass
 
         if self.initGoal:
-            self.goal_x, self.goal_y = self.respawn_goal.getPosition()
+            self.goal_x, self.goal_y = self.respawn_goal.get_position()
             self.initGoal = False
 
-        self.start_goal_distance = self.getGoalDistace()
+        self.start_goal_distance = self.get_goal_distance()
         self.previous_goal_distance = self.start_goal_distance
-        state, done = self.getState(data)
+        state, done = self.get_state(data)
 
         return np.asarray(state)

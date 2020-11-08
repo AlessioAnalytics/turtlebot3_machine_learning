@@ -38,9 +38,9 @@ def run_episode(env, global_step, param_dictionary, start_time):
 
     state = env.reset()
     score = 0
-    start_goal = env.getGoal()
+    start_goal = env.get_goal()
     for episode_step in range(agent.episode_max_steps):
-        goal = env.getGoal()
+        goal = env.get_goal()
         action = agent.get_action(state, goal)
 
         next_state, reward, done = env.step(action)
@@ -51,7 +51,7 @@ def run_episode(env, global_step, param_dictionary, start_time):
                 reward = -10
             done = True
 
-        position = env.getPosition()
+        position = env.get_position()
         agent.her.append_episode_replay(state, action, goal, position, reward, next_state, done)
         log_utils.make_log_entry(log, log_title, run_id, episode_number,
                                  episode_step, state, next_state, goal, position,

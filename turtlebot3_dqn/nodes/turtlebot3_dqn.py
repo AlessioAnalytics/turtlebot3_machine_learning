@@ -41,7 +41,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
     state = env.reset()
     score = 0
     for episode_step in range(agent.episode_max_step):
-        goal = env.getGoal()
+        goal = env.get_goal()
         action = agent.get_action(state)
         next_state, reward, done = env.step(action)
 
@@ -49,7 +49,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
             rospy.loginfo("Time out!!")
             done = True
 
-        position = env.getPosition()
+        position = env.get_position()
         agent.append_memory(state, action, reward, next_state, done)
         log_utils.make_log_entry(log, log_title, run_id, episode_number,
                                  episode_step, state, next_state, goal, position,
