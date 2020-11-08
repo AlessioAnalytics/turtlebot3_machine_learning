@@ -15,7 +15,7 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert #
+# Authors: Gilbert, Mueller#
 
 import rospy
 import random
