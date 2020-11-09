@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     run_id = int(time.time())
     log_title = "turtlebot3_dqn"
-    log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=2)
+    log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=2, save_to_db=True)
     env = Env.Env(action_size)
     agent = ReinforceAgent(state_size, action_size, stage, episode_max_step=1000)
 
@@ -120,7 +120,7 @@ if __name__ == '__main__':
                                                             global_step=global_step, param_dictionary=param_dictionary,
                                                             start_time=start_time, scores=scores, episodes=episodes,
                                                             log=log, log_title=log_title, episode_number=episode_number,
-                                                            save_model_to_disk=False)
+                                                            save_model_to_disk=True)
 
         log.save()
 
