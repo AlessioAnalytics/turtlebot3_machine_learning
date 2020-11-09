@@ -33,10 +33,10 @@ def get_reward(goal_reached, done, goal_distance):
         return 1 / np.exp(goal_distance)
 
     elif goal_reached:
-        return 1
+        return 25
 
     else:
-        return -1
+        return -5
 
 
 def alternative_reward(goal_reached, done):
