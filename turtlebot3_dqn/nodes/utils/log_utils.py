@@ -62,9 +62,8 @@ def setup_logger(title, n_state_vals, action_dim, goal_dim, save_to_db=False,
 
 
 def make_log_entry(log, title, run_id, episode_number,
-                   episode_step, from_state, to_state, goal, position,
-                   action, q_vals,
-                   reward, terminal):
+                   episode_step, from_state, to_state, goal,
+                   position, action, q_vals, reward, terminal):
     int_vals = [run_id, episode_number, episode_step]
 
     float_vals = np.asarray(from_state).flatten().tolist()

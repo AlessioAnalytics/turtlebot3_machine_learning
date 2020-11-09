@@ -81,7 +81,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
             param_values = [agent.epsilon, episode_number]
             param_dictionary = dict(zip(param_keys, param_values))
 
-            return run_id, global_step
+            return run_id, global_step, param_dictionary
 
         global_step += 1
         if global_step % agent.target_update == 0:
@@ -89,7 +89,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
 
 
 if __name__ == '__main__':
-    EPISODES = 3000
+    EPISODES = 1000
 
     stage = rospy.get_param("/turtlebot3_dqn/stage")
     Env = import_module("src.turtlebot3_dqn.environment")  # TODO change import to normal import
@@ -100,11 +100,10 @@ if __name__ == '__main__':
 
     state_size = 28
     action_size = 5
-    goal_size = 2
 
     run_id = int(time.time())
     log_title = "turtlebot3_dqn"
-    log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=2)
+    log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=2, save_to_db=True)
     env = Env.Env(action_size)
     agent = ReinforceAgent(state_size, action_size, stage, episode_max_step=1000)
 
@@ -116,12 +115,12 @@ if __name__ == '__main__':
     param_dictionary = dict(zip(param_keys, param_values))
 
     for episode_number in range(agent.load_episode + 1, EPISODES):
-        run_id, global_step = run_episode(agent, env, pub_result=pub_result,
-                                          pub_get_action=pub_get_action, run_id=run_id,
-                                          global_step=global_step, param_dictionary=param_dictionary,
-                                          start_time=start_time, scores=scores, episodes=episodes,
-                                          log=log, log_title=log_title, episode_number=episode_number,
-                                          save_model_to_disk=False)
+        run_id, global_step, param_dictionary = run_episode(agent, env, pub_result=pub_result,
+                                                            pub_get_action=pub_get_action, run_id=run_id,
+                                                            global_step=global_step, param_dictionary=param_dictionary,
+                                                            start_time=start_time, scores=scores, episodes=episodes,
+                                                            log=log, log_title=log_title, episode_number=episode_number,
+                                                            save_model_to_disk=True)
 
         log.save()
 
