@@ -15,7 +15,7 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert #
+# Authors: Gilbert, Mueller#
 
 import rospy
 import numpy as np
@@ -27,8 +27,10 @@ from nav_msgs.msg import Odometry
 from std_srvs.srv import Empty
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from respawnGoal import Respawn
+import reward_service
 
-class Env():
+
+class Env:
     def __init__(self, action_size):
         self.goal_x = 0
         self.goal_y = 0
@@ -37,26 +39,27 @@ class Env():
         self.previous_goal_distance = None
         self.action_size = action_size
         self.initGoal = True
-        self.get_goalbox = False
+        self.goal_reached = False
         self.position = Pose()
         self.pub_cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=5)
-        self.sub_odom = rospy.Subscriber('odom', Odometry, self.getOdometry)
+        self.sub_odom = rospy.Subscriber('odom', Odometry, self.get_odometry)
         self.reset_proxy = rospy.ServiceProxy('gazebo/reset_simulation', Empty)
         self.unpause_proxy = rospy.ServiceProxy('gazebo/unpause_physics', Empty)
         self.pause_proxy = rospy.ServiceProxy('gazebo/pause_physics', Empty)
         self.respawn_goal = Respawn()
+        self.start_goal_distance = 0
 
-    def getGoal(self):
+    def get_goal(self):
         return [self.goal_x, self.goal_y]
 
-    def getPosition(self):
+    def get_position(self):
         return [self.position.x, self.position.y]
 
-    def getGoalDistace(self):
+    def get_goal_distance(self):
         goal_distance = round(math.hypot(self.goal_x - self.position.x, self.goal_y - self.position.y), 2)
         return goal_distance
 
-    def getOdometry(self, odom):
+    def get_odometry(self, odom):
         self.position = odom.pose.pose.position
         orientation = odom.pose.pose.orientation
         orientation_list = [orientation.x, orientation.y, orientation.z, orientation.w]
@@ -72,9 +75,9 @@ class Env():
             heading += 2 * pi
 
         self.heading = round(heading, 2)
-        self.current_goal_distance = self.getGoalDistace()
+        self.current_goal_distance = self.get_goal_distance()
 
-    def getState(self, scan):
+    def get_state(self, scan):
         done = False
         min_range = 0.13
         scan_normalize_const = 3.5
@@ -89,60 +92,39 @@ class Env():
             elif np.isnan(scan.ranges[i]):
                 scan_range.append(0)
             else:
-                scan_range.append(scan.ranges[i]/scan_normalize_const)
+                scan_range.append(scan.ranges[i] / scan_normalize_const)
 
-        if min_range/scan_normalize_const > min(scan_range) > 0:
+        if min_range / scan_normalize_const > min(scan_range) > 0:
             done = True
 
         if self.current_goal_distance < 0.2:
-            self.get_goalbox = True
+            self.goal_reached = True
 
-        heading = self.heading/heading_normalize
+        heading = self.heading / heading_normalize
         current_goal_distance = self.current_goal_distance / goal_distance_normalize
-        obstacle_min_range = round(min(scan_range)/scan_normalize_const, 2)
-        obstacle_angle = np.argmin(scan_range)/n_scan_ranges*2-1
+        obstacle_min_range = round(min(scan_range) / scan_normalize_const, 2)
+        obstacle_angle = np.argmin(scan_range) / n_scan_ranges * 2 - 1
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
-    def setReward(self, state, done, action):
-        yaw_reward = []
-        obstacle_min_range = state[-2]
-        current_goal_distance = state[-3]
-        heading = state[-4]
-
-        for i in range(5):
-            angle = -pi / 4 + heading + (pi / 8 * i) + pi / 2
-            tr = 1 - 4 * math.fabs(0.5 - math.modf(0.25 + 0.5 * angle % (2 * math.pi) / math.pi)[0])
-            yaw_reward.append(tr)
-
-        distance_rate = 2 ** (current_goal_distance / self.start_goal_distance)
-
-        if obstacle_min_range < 0.5:
-            ob_reward = -5
-        else:
-            ob_reward = 0
-
-        reward = ((round(yaw_reward[action] * 5, 2)) * distance_rate) + ob_reward
-
+    def get_reward(self, state, done, action):
+        reward = reward_service.get_reward(self.goal_reached, done, self.get_goal_distance())
         if done:
             rospy.loginfo("Collision!!")
-            reward = -500
             self.pub_cmd_vel.publish(Twist())
 
-        if self.get_goalbox:
+        if self.goal_reached:
             rospy.loginfo("Goal!!")
-            reward = 1000
             self.pub_cmd_vel.publish(Twist())
-            self.goal_x, self.goal_y = self.respawn_goal.getPosition(True, delete=True)
-            self.start_goal_distance = self.getGoalDistace()
+            self.goal_x, self.goal_y = self.respawn_goal.get_position(True, delete=True)
+            self.start_goal_distance = self.get_goal_distance()
             self.previous_goal_distance = self.start_goal_distance
-            self.get_goalbox = False
+            self.goal_reached = False
 
         return reward
 
-
     def step(self, action):
         max_angular_vel = 1.5
-        ang_vel = ((self.action_size - 1)/2 - action) * max_angular_vel * 0.5
+        ang_vel = ((self.action_size - 1) / 2 - action) * max_angular_vel * 0.5
 
         vel_cmd = Twist()
         vel_cmd.linear.x = 0.15
@@ -156,8 +138,8 @@ class Env():
             except:
                 pass
 
-        state, done = self.getState(data)
-        reward = self.setReward(state, done, action)
+        state, done = self.get_state(data)
+        reward = self.get_reward(state, done, action)
 
         return np.asarray(state), reward, done
 
@@ -176,11 +158,11 @@ class Env():
                 pass
 
         if self.initGoal:
-            self.goal_x, self.goal_y = self.respawn_goal.getPosition()
+            self.goal_x, self.goal_y = self.respawn_goal.get_position()
             self.initGoal = False
 
-        self.start_goal_distance = self.getGoalDistace()
+        self.start_goal_distance = self.get_goal_distance()
         self.previous_goal_distance = self.start_goal_distance
-        state, done = self.getState(data)
+        state, done = self.get_state(data)
 
         return np.asarray(state)
