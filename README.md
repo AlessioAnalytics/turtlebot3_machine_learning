@@ -28,6 +28,9 @@ This can only be set once, if you want to change it afterwards you need to resta
 Docker container.
 
 ### Errors
+If you didn't map a volume in the docker_start script you need to set
+save_model_to_disk and save_to_db in turtlebot3_dqn.py to False.
+
 If no simulation is starting on your screen make sure `$DISPLAY` is set correctly.
 
 
