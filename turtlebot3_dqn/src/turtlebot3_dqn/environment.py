@@ -158,7 +158,7 @@ class Env:
                 pass
 
         if self.initGoal:
-            self.goal_x, self.goal_y = self.respawn_goal.get_position()
+            self.goal_x, self.goal_y = self.respawn_goal.get_position(position_check=True)
             self.initGoal = False
 
         self.start_goal_distance = self.get_goal_distance()
