@@ -15,7 +15,7 @@
 # limitations under the License.
 #################################################################################
 
-# Authors: Gilbert #
+# Authors: Gilbert, Mueller#
 
 import rospy
 import random
@@ -25,7 +25,8 @@ from gazebo_msgs.srv import SpawnModel, DeleteModel
 from gazebo_msgs.msg import ModelStates
 from geometry_msgs.msg import Pose
 
-class Respawn():
+
+class Respawn:
     def __init__(self):
         self.modelPath = os.path.dirname(os.path.realpath(__file__))
         self.modelPath = self.modelPath.replace('turtlebot3_machine_learning/turtlebot3_dqn/src/turtlebot3_dqn',
@@ -46,17 +47,17 @@ class Respawn():
         self.last_goal_x = self.init_goal_x
         self.last_goal_y = self.init_goal_y
         self.last_index = 0
-        self.sub_model = rospy.Subscriber('gazebo/model_states', ModelStates, self.checkModel)
+        self.sub_model = rospy.Subscriber('gazebo/model_states', ModelStates, self.check_model)
         self.check_model = False
         self.index = 0
 
-    def checkModel(self, model):
+    def check_model(self, model):
         self.check_model = False
         for i in range(len(model.name)):
             if model.name[i] == "goal":
                 self.check_model = True
 
-    def respawnModel(self):
+    def respawn_model(self):
         while True:
             if not self.check_model:
                 rospy.wait_for_service('gazebo/spawn_sdf_model')
@@ -68,7 +69,7 @@ class Respawn():
             else:
                 pass
 
-    def deleteModel(self):
+    def delete_model(self):
         while True:
             if self.check_model:
                 rospy.wait_for_service('gazebo/delete_model')
@@ -78,9 +79,9 @@ class Respawn():
             else:
                 pass
 
-    def getPosition(self, position_check=False, delete=False):
+    def get_position(self, position_check=False, delete=False):
         if delete:
-            self.deleteModel()
+            self.delete_model()
 
         if self.stage != 4:
             while position_check:
@@ -122,7 +123,7 @@ class Respawn():
                 self.goal_position.position.y = goal_y_list[self.index]
 
         time.sleep(0.5)
-        self.respawnModel()
+        self.respawn_model()
 
         self.last_goal_x = self.goal_position.position.x
         self.last_goal_y = self.goal_position.position.y
