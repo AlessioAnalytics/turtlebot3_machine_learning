@@ -107,7 +107,7 @@ class Env:
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def get_reward(self, state, done, action):
-        reward = legacy_reward(state, done, action, self.start_goal_distance, self.goal_reached)
+        reward = reward_service.legacy_reward(state, done, action, self.start_goal_distance, self.goal_reached)
         # reward = reward_service.get_reward(self.goal_reached, done, self.get_goal_distance())
 
         if done:
