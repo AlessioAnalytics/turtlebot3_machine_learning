@@ -39,15 +39,12 @@ def get_reward(goal_reached, done, goal_distance):
         return -5
 
 
-def alternative_reward(goal_reached, done):
+def punish(goal_reached, done):
     """
     from: Deep Reinforcement Learning with Successor Features
           for Navigation across Similar Environments
     """
-    if done:
-        return -0.96
-
-    elif goal_reached:
+    if goal_reached:
         return 1
 
     else:

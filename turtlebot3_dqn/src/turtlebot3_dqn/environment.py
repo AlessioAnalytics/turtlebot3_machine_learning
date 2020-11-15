@@ -94,8 +94,8 @@ class Env:
             else:
                 scan_range.append(scan.ranges[i] / scan_normalize_const)
 
-        if min_range / scan_normalize_const > min(scan_range) > 0:
-            done = True
+        # if min_range / scan_normalize_const > min(scan_range) > 0:
+        #    done = True
 
         if self.current_goal_distance < 0.2:
             self.goal_reached = True
@@ -107,8 +107,9 @@ class Env:
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def get_reward(self, state, done, action):
-        reward = reward_service.legacy_reward(state, done, action, self.start_goal_distance, self.goal_reached)
+        # reward = reward_service.legacy_reward(state, done, action, self.start_goal_distance, self.goal_reached)
         # reward = reward_service.get_reward(self.goal_reached, done, self.get_goal_distance())
+        reward = reward_service.punish(self.goal_reached, done)
 
         if done:
             rospy.loginfo("Collision!!")
