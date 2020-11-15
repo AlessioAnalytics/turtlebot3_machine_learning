@@ -95,9 +95,8 @@ class Env:
             else:
                 scan_range.append(scan.ranges[i] / scan_normalize_const)
 
-        if min_range / scan_normalize_const > min(scan_range) > 0:
+        if min_range / scan_normalize_const > min(scan_range):
             hit_wall = True
-        #    done = True
 
         if self.current_goal_distance < 0.2:
             self.goal_reached = True
