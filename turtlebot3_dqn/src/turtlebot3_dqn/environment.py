@@ -168,6 +168,6 @@ class Env:
 
         self.start_goal_distance = self.get_goal_distance()
         self.previous_goal_distance = self.start_goal_distance
-        state, done = self.get_state(data)
+        state, done, _ = self.get_state(data)
 
         return np.asarray(state)
