@@ -63,7 +63,7 @@ def punish_no_sparse(goal_reached, goal_distance):
         return 1
 
     else:
-        return -np.exp(goal_distance)
+        return -np.exp(goal_distance) / 10
 
 
 def legacy_reward(state, done, action, start_goal_distance, goal_reached):
