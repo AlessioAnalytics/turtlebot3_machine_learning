@@ -54,6 +54,18 @@ def punish(goal_reached, hit_wall):
         return -0.04
 
 
+def punish_no_sparse(goal_reached, goal_distance):
+    """
+    from: Deep Reinforcement Learning with Successor Features
+          for Navigation across Sim3ilar Environments
+    """
+    if goal_reached:
+        return 1
+
+    else:
+        return -np.exp(goal_distance)
+
+
 def legacy_reward(state, done, action, start_goal_distance, goal_reached):
     """
     Legacy reward function in original Repo from Gilbert
