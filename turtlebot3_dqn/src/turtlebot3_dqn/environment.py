@@ -35,6 +35,7 @@ class Env:
     Environment class that handles the connection to the Gazebo engine
     Also implements the necessary functions for a RL environment
     """
+
     def __init__(self, action_size):
 
         self.goal_x = 0
@@ -104,7 +105,9 @@ class Env:
 
         if self.current_goal_distance < 0.2:
             self.goal_reached = True
-            done = True
+
+            if not reset_if_wall_hit:
+                done = True
 
         heading = self.heading / heading_normalize
         current_goal_distance = self.current_goal_distance / goal_distance_normalize
