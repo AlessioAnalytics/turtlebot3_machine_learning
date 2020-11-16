@@ -28,18 +28,13 @@ This can only be set once, if you want to change it afterwards you need to resta
 Docker container.
 
 ### Errors
-If you didn't map a volume in the docker_start script you need to set
-save_model_to_disk and save_to_db in turtlebot3_dqn.py to False.
+If you didn't map a volume in the `docker_start.sh` script you need to set
+`save_model_to_disk` and `save_to_db` in `turtlebot3_dqn.py` to `False`.
 
 If no simulation is starting on your screen make sure `$DISPLAY` is set correctly.
 
 
 ## Tips 
-### Save Model
-
-If you want to save your model to your hard drive you will need to map a volume
-in the `docker_start.sh` file and then enable save_model_to_disk in `turtlebot3_dqn.py`
-
 ### Speedup Simulation
 
 In the Gazebo Gui on the left side on the world tab click Physics and set real time update to 0.

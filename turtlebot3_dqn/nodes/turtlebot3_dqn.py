@@ -66,7 +66,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
         get_action.data = [action, score, reward]
         pub_get_action.publish(get_action)
 
-        if save_model_to_disk and episode_number % 10 == 0 and episode_step == 0:
+        if save_model_to_disk and episode_step == 0:
             save_model(agent, param_dictionary, episode_number)
 
         if done:
@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
     stage = rospy.get_param("/turtlebot3_dqn/stage")
     Env = import_module("src.turtlebot3_dqn.environment")  # TODO change import to normal import
-    rospy.init_node('turtlebot3_dqn_stage_' + stage)  # TODO is this necessary
+    rospy.init_node('turtlebot3_dqn_stage_' + stage)  # TODO is the stage param necessary
 
     pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
     pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     log_title = "turtlebot3_dqn"
     log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=2, save_to_db=True)
     env = Env.Env(action_size)
-    agent = ReinforceAgent(state_size, action_size, stage, episode_max_step=2500)
+    agent = ReinforceAgent(state_size, action_size, stage, episode_max_step=2500, epsilon_decay=0.9)
 
     scores, episodes = [], []
     global_step = 0
