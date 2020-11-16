@@ -22,33 +22,13 @@ import math
 from math import pi
 
 
-def get_reward(goal_reached, done, goal_distance):
-    """
-    :param goal_reached: if goal is reached at this time step
-    :param done: if episode ends (crash or time limit)
-    :param goal_distance: euclidean distance between robot and goal
-    :return: reward
-    """
-    if not goal_reached and not done:
-        return 1 / np.exp(goal_distance)
-
-    elif goal_reached:
-        return 25
-
-    else:
-        return -5
-
-
-def punish(goal_reached, hit_wall):
+def punish_sparse(goal_reached):
     """
     from: Deep Reinforcement Learning with Successor Features
           for Navigation across Sim3ilar Environments
     """
     if goal_reached:
         return 1
-
-    elif hit_wall:
-        return -0.1
 
     else:
         return -0.04
@@ -59,7 +39,7 @@ def punish_no_sparse(goal_reached, goal_distance):
         return 100
 
     else:
-        return -np.exp(goal_distance) / 5
+        return -np.exp(goal_distance) / 100
 
 
 def legacy_reward(state, done, action, start_goal_distance, goal_reached):
