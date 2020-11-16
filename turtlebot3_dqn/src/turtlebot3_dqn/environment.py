@@ -99,6 +99,7 @@ class Env:
 
         if self.current_goal_distance < 0.2:
             self.goal_reached = True
+            done = True
 
         heading = self.heading / heading_normalize
         current_goal_distance = self.current_goal_distance / goal_distance_normalize
