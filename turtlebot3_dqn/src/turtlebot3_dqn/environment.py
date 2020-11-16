@@ -108,8 +108,6 @@ class Env:
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def get_reward(self, state, done, action):
-        # reward = reward_service.legacy_reward(state, done, action, self.start_goal_distance, self.goal_reached)
-        # reward = reward_service.get_reward(self.goal_reached, done, self.get_goal_distance())
         reward = reward_service.punish_no_sparse(self.goal_reached, self.get_goal_distance())
 
         if done:
@@ -154,7 +152,7 @@ class Env:
         rospy.wait_for_service('gazebo/reset_simulation')
         try:
             self.reset_proxy()
-        except (rospy.ServiceException) as e:
+        except rospy.ServiceException as e:
             print("gazebo/reset_simulation service call failed")
 
         data = None
