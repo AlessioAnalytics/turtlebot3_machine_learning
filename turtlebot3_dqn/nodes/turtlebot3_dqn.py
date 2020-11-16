@@ -35,6 +35,26 @@ from importlib import import_module
 def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
                 global_step, param_dictionary, start_time, scores, episodes,
                 log, log_title, save_model_to_disk):
+    """
+    Runs an episode in the chosen stage of the Gazebo Simulation
+    Episode ends when a goal is reached or after episode max steps in the
+    agent is exceeded
+
+    :param agent: RL agent to act in the Gazebo environment
+    :param env: Gazebo simulation
+    :param pub_result: Rospy publisher for the latest score and q-values
+    :param pub_get_action: Rospy publisher of the latest action and reward
+    :param run_id: ID for logging purposes
+    :param episode_number: current episode number
+    :param global_step: all steps of all episodes counted
+    :param param_dictionary: dict which contains all model parameters
+    :param start_time: start time of run
+    :param scores: list of cumulated rewards per episode
+    :param episodes: list containing all episodes done
+    :param log: logging object
+    :param log_title: string title of log
+    :param save_model_to_disk: boolean if model should be saved to disk
+    """
     result = Float32MultiArray()
     get_action = Float32MultiArray()
 
@@ -89,6 +109,11 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
 
 
 if __name__ == '__main__':
+    """
+    Initializes necessary Rospy node and publishers, reinforcement agent,
+    Gazebo environment, logging information and handles the running of
+    multiple episodes
+    """
     EPISODES = 1000
 
     stage = rospy.get_param("/turtlebot3_dqn/stage")

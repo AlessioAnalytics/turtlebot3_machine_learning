@@ -25,7 +25,7 @@ from math import pi
 def punish_sparse(goal_reached):
     """
     from: Deep Reinforcement Learning with Successor Features
-          for Navigation across Sim3ilar Environments
+          for Navigation across Similar Environments
     """
     if goal_reached:
         return 1
@@ -44,7 +44,7 @@ def punish_no_sparse(goal_reached, goal_distance):
 
 def legacy_reward(state, done, action, start_goal_distance, goal_reached):
     """
-    Legacy reward function in original Repo from Gilbert
+    Legacy reward function in original Repo from ROBOTIS
     """
     yaw_reward = []
     current_goal_distance = state[-3]

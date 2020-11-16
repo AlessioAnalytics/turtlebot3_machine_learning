@@ -31,7 +31,12 @@ import reward_service
 
 
 class Env:
+    """
+    Environment class that handles the connection to the Gazebo engine
+    Also implements the necessary functions for a RL environment
+    """
     def __init__(self, action_size):
+
         self.goal_x = 0
         self.goal_y = 0
         self.heading = 0
@@ -77,7 +82,7 @@ class Env:
         self.heading = round(heading, 2)
         self.current_goal_distance = self.get_goal_distance()
 
-    def get_state(self, scan):
+    def get_state(self, scan, reset_if_wall_hit=False):
         done = False
         min_range = 0.13
         scan_normalize_const = 3.5
@@ -94,8 +99,8 @@ class Env:
             else:
                 scan_range.append(scan.ranges[i] / scan_normalize_const)
 
-        # if min_range / scan_normalize_const > min(scan_range) > 0:
-        #       done = True
+        if reset_if_wall_hit and min_range / scan_normalize_const > min(scan_range) > 0:
+            done = True
 
         if self.current_goal_distance < 0.2:
             self.goal_reached = True
