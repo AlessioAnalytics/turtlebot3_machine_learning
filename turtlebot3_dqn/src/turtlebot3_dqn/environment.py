@@ -38,7 +38,6 @@ class Env:
     """
 
     def __init__(self, action_size):
-
         self.goal_x = 0
         self.goal_y = 0
         self.heading = 0
@@ -67,6 +66,10 @@ class Env:
         return goal_distance
 
     def get_odometry(self, odom):
+        """
+        Handles the position of the robot in the simulation as (x, y, z) tuple.
+        Also deals with orientation, so the direction the robot is facing.
+        """
         self.position = odom.pose.pose.position
         orientation = odom.pose.pose.orientation
         orientation_list = [orientation.x, orientation.y, orientation.z, orientation.w]
@@ -85,6 +88,12 @@ class Env:
         self.current_goal_distance = self.get_goal_distance()
 
     def get_state(self, scan, reset_if_wall_hit=False):
+        """
+        :param scan: Distance measurements by the LIDAR sensor
+        :param reset_if_wall_hit: Boolean to make the episode end if a wall is
+        hit or not.
+        :return: current state of the environment to feed to the agent
+        """
         done = False
         min_range = 0.13
         scan_normalize_const = 3.5

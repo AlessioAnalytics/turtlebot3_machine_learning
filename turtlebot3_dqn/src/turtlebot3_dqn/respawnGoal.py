@@ -28,6 +28,10 @@ from geometry_msgs.msg import Pose
 
 
 class Respawn:
+    """
+    Class to handle the respawn mechanism of the goal once it is reached or
+    the episodes ends in another way.
+    """
     def __init__(self):
         self.modelPath = os.path.dirname(os.path.realpath(__file__))
         self.modelPath = self.modelPath.replace('turtlebot3_machine_learning/turtlebot3_dqn/src/turtlebot3_dqn',
@@ -81,6 +85,12 @@ class Respawn:
                 pass
 
     def get_position(self, position_check=False, delete=False):
+        """
+        :param delete: If robot model should be deleted first.
+        :param position_check: If position should be checked for certain
+        conditions that differ for stage 4 from the other stages.
+        :return: the (x, y) position of the next goal.
+        """
         if delete:
             self.delete_model()
 
