@@ -95,16 +95,20 @@ class Env:
         n_scan_ranges = len(scan.ranges)
         for i in range(n_scan_ranges):
             if scan.ranges[i] == float('Inf'):
-                scan_range.append(1)
+                scan_range.append(scan_normalize_const)
             elif np.isnan(scan.ranges[i]):
                 scan_range.append(0)
             else:
-                scan_range.append(scan.ranges[i] / scan_normalize_const)
+                scan_range.append(scan.ranges[i])
 
-        if min_range / scan_normalize_const > min(scan_range) > 0:
+        if min_range > min(scan_range) > 0:
             hit_wall = True
             if reset_if_wall_hit:
                 done = True
+
+        # normalize after comparison for better accuracy
+        for i in range(n_scan_ranges):
+            scan_range[i] /= scan_normalize_const
 
         if self.current_goal_distance < 0.2:
             self.goal_reached = True
