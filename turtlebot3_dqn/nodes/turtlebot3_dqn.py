@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #################################################################################
 # Copyright 2018 ROBOTIS CO., LTD.
+# Copyright 2020 Alessio Analytics GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,6 +36,26 @@ from importlib import import_module
 def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
                 global_step, param_dictionary, start_time, scores, episodes,
                 log, log_title, save_model_to_disk):
+    """
+    Runs an episode in the chosen stage of the Gazebo Simulation
+    Episode ends when a goal is reached or after episode max steps in the
+    agent is exceeded
+
+    :param agent: RL agent to act in the Gazebo environment
+    :param env: Gazebo simulation
+    :param pub_result: Rospy publisher for the latest score and q-values
+    :param pub_get_action: Rospy publisher of the latest action and reward
+    :param run_id: ID for logging purposes
+    :param episode_number: current episode number
+    :param global_step: all steps of all episodes counted
+    :param param_dictionary: dict which contains all model parameters
+    :param start_time: start time of run
+    :param scores: list of cumulated rewards per episode
+    :param episodes: list containing all episodes done
+    :param log: logging object
+    :param log_title: string title of log
+    :param save_model_to_disk: boolean if model should be saved to disk
+    """
     result = Float32MultiArray()
     get_action = Float32MultiArray()
 
@@ -66,7 +87,7 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
         get_action.data = [action, score, reward]
         pub_get_action.publish(get_action)
 
-        if save_model_to_disk and episode_number % 10 == 0 and episode_step == 0:
+        if save_model_to_disk and episode_step == 0:
             save_model(agent, param_dictionary, episode_number)
 
         if done:
@@ -89,11 +110,16 @@ def run_episode(agent, env, pub_result, pub_get_action, run_id, episode_number,
 
 
 if __name__ == '__main__':
+    """
+    Initializes necessary Rospy node and publishers, reinforcement agent,
+    Gazebo environment, logging information and handles the running of
+    multiple episodes
+    """
     EPISODES = 1000
 
     stage = rospy.get_param("/turtlebot3_dqn/stage")
     Env = import_module("src.turtlebot3_dqn.environment")  # TODO change import to normal import
-    rospy.init_node('turtlebot3_dqn_stage_' + stage)  # TODO is this necessary
+    rospy.init_node('turtlebot3_dqn_stage_' + stage)  # TODO is the stage param necessary
 
     pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
     pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
@@ -105,7 +131,7 @@ if __name__ == '__main__':
     log_title = "turtlebot3_dqn"
     log, keys = log_utils.setup_logger(log_title, state_size, action_size, goal_dim=2, save_to_db=True)
     env = Env.Env(action_size)
-    agent = ReinforceAgent(state_size, action_size, stage, episode_max_step=1000)
+    agent = ReinforceAgent(state_size, action_size, stage, episode_max_step=2500, epsilon_decay=0.9)
 
     scores, episodes = [], []
     global_step = 0

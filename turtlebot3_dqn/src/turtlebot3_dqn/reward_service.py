@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #################################################################################
 # Copyright 2018 ROBOTIS CO., LTD.
+# Copyright 2020 Alessio Analytics GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,41 +23,29 @@ import math
 from math import pi
 
 
-def get_reward(goal_reached, done, goal_distance):
-    """
-    :param goal_reached: if goal is reached at this time step
-    :param done: if episode ends (crash or time limit)
-    :param goal_distance: euclidean distance between robot and goal
-    :return: reward
-    """
-    if not goal_reached and not done:
-        return 1 / np.exp(goal_distance)
-
-    elif goal_reached:
-        return 1
-
-    else:
-        return -1
-
-
-def alternative_reward(goal_reached, done):
+def punish_sparse(goal_reached):
     """
     from: Deep Reinforcement Learning with Successor Features
           for Navigation across Similar Environments
     """
-    if done:
-        return -0.96
-
-    elif goal_reached:
+    if goal_reached:
         return 1
 
     else:
         return -0.04
 
 
+def punish_no_sparse(goal_reached, goal_distance):
+    if goal_reached:
+        return 100
+
+    else:
+        return -np.exp(goal_distance) / 100
+
+
 def legacy_reward(state, done, action, start_goal_distance, goal_reached):
     """
-    Legacy reward function in original Repo from Gilbert
+    Legacy reward function in original Repo from ROBOTIS
     """
     yaw_reward = []
     current_goal_distance = state[-3]

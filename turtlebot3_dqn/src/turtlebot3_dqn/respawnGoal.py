@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #################################################################################
 # Copyright 2018 ROBOTIS CO., LTD.
+# Copyright 2020 Alessio Analytics GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,8 +36,8 @@ class Respawn:
         self.model = self.f.read()
         self.stage = rospy.get_param('/stage_number')
         self.goal_position = Pose()
-        self.init_goal_x = 0.6
-        self.init_goal_y = 0.0
+        self.init_goal_x = 0.2
+        self.init_goal_y = 1.5
         self.goal_position.position.x = self.init_goal_x
         self.goal_position.position.y = self.init_goal_y
         self.modelName = 'goal'

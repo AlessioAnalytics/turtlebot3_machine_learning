@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #################################################################################
 # Copyright 2018 ROBOTIS CO., LTD.
+# Copyright 2020 Alessio Analytics GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +32,13 @@ import reward_service
 
 
 class Env:
+    """
+    Environment class that handles the connection to the Gazebo engine
+    Also implements the necessary functions for a RL environment
+    """
+
     def __init__(self, action_size):
+
         self.goal_x = 0
         self.goal_y = 0
         self.heading = 0
@@ -77,7 +84,7 @@ class Env:
         self.heading = round(heading, 2)
         self.current_goal_distance = self.get_goal_distance()
 
-    def get_state(self, scan):
+    def get_state(self, scan, reset_if_wall_hit=False):
         done = False
         min_range = 0.13
         scan_normalize_const = 3.5
@@ -94,11 +101,14 @@ class Env:
             else:
                 scan_range.append(scan.ranges[i] / scan_normalize_const)
 
-        if min_range / scan_normalize_const > min(scan_range) > 0:
+        if reset_if_wall_hit and min_range / scan_normalize_const > min(scan_range) > 0:
             done = True
 
         if self.current_goal_distance < 0.2:
             self.goal_reached = True
+
+            if not reset_if_wall_hit:
+                done = True
 
         heading = self.heading / heading_normalize
         current_goal_distance = self.current_goal_distance / goal_distance_normalize
@@ -107,7 +117,8 @@ class Env:
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
 
     def get_reward(self, state, done, action):
-        reward = reward_service.get_reward(self.goal_reached, done, self.get_goal_distance())
+        reward = reward_service.punish_no_sparse(self.goal_reached, self.get_goal_distance())
+
         if done:
             rospy.loginfo("Collision!!")
             self.pub_cmd_vel.publish(Twist())
@@ -127,7 +138,10 @@ class Env:
         ang_vel = ((self.action_size - 1) / 2 - action) * max_angular_vel * 0.5
 
         vel_cmd = Twist()
-        vel_cmd.linear.x = 0.15
+        if action == 0 or action == 4:
+            vel_cmd.linear.x = 0
+        else:
+            vel_cmd.linear.x = 0.15
         vel_cmd.angular.z = ang_vel
         self.pub_cmd_vel.publish(vel_cmd)
 
@@ -147,7 +161,7 @@ class Env:
         rospy.wait_for_service('gazebo/reset_simulation')
         try:
             self.reset_proxy()
-        except (rospy.ServiceException) as e:
+        except rospy.ServiceException as e:
             print("gazebo/reset_simulation service call failed")
 
         data = None
