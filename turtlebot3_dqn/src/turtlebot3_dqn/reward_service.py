@@ -35,9 +35,12 @@ def punish_sparse(goal_reached):
         return -0.04
 
 
-def punish_no_sparse(goal_reached, goal_distance):
+def punish_no_sparse(goal_reached, goal_distance, hit_wall):
     if goal_reached:
         return 100
+
+    elif hit_wall:
+        return -np.exp(goal_distance) / 10
 
     else:
         return -np.exp(goal_distance) / 100

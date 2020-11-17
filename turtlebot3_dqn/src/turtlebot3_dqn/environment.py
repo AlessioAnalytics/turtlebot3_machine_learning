@@ -38,7 +38,6 @@ class Env:
     """
 
     def __init__(self, action_size):
-
         self.goal_x = 0
         self.goal_y = 0
         self.heading = 0
@@ -86,6 +85,7 @@ class Env:
 
     def get_state(self, scan, reset_if_wall_hit=False):
         done = False
+        hit_wall = False
         min_range = 0.13
         scan_normalize_const = 3.5
         goal_distance_normalize = 2
@@ -101,8 +101,10 @@ class Env:
             else:
                 scan_range.append(scan.ranges[i] / scan_normalize_const)
 
-        if reset_if_wall_hit and min_range / scan_normalize_const > min(scan_range) > 0:
-            done = True
+        if min_range / scan_normalize_const > min(scan_range) > 0:
+            hit_wall = True
+            if reset_if_wall_hit:
+                done = True
 
         if self.current_goal_distance < 0.2:
             self.goal_reached = True
@@ -114,10 +116,10 @@ class Env:
         current_goal_distance = self.current_goal_distance / goal_distance_normalize
         obstacle_min_range = round(min(scan_range) / scan_normalize_const, 2)
         obstacle_angle = np.argmin(scan_range) / n_scan_ranges * 2 - 1
-        return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done
+        return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done, hit_wall
 
-    def get_reward(self, state, done, action):
-        reward = reward_service.punish_no_sparse(self.goal_reached, self.get_goal_distance())
+    def get_reward(self, state, done, action, hit_wall):
+        reward = reward_service.punish_no_sparse(self.goal_reached, self.get_goal_distance(), hit_wall)
 
         if done:
             rospy.loginfo("Collision!!")
@@ -152,8 +154,8 @@ class Env:
             except:
                 pass
 
-        state, done = self.get_state(data)
-        reward = self.get_reward(state, done, action)
+        state, done, hit_wall = self.get_state(data)
+        reward = self.get_reward(state, done, action, hit_wall)
 
         return np.asarray(state), reward, done
 
@@ -177,6 +179,6 @@ class Env:
 
         self.start_goal_distance = self.get_goal_distance()
         self.previous_goal_distance = self.start_goal_distance
-        state, done = self.get_state(data)
+        state, done, _ = self.get_state(data)
 
         return np.asarray(state)
