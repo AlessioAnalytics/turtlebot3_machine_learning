@@ -35,7 +35,7 @@ from keras.layers import Dense, Dropout, Activation, BatchNormalization
 
 class ReinforceAgent:
     def __init__(self, state_size, action_size, stage="1",
-                 episode_max_step=6000, target_update=2000, discount_factor=0.99,
+                 episode_max_step=5000, target_update=2000, discount_factor=0.99,
                  learning_rate=0.00025, epsilon=1.0, epsilon_decay=0.99,
                  epsilon_min=0.05, batch_size=64, train_start=64, load_model_bool=True):
         self.pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)

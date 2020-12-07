@@ -24,18 +24,17 @@ from math import pi
 
 
 def punish_sparse(goal_reached):
-    """
-    from: Deep Reinforcement Learning with Successor Features
-          for Navigation across Similar Environments
-    """
+    max_steps = 5000 # TODO make this param
+
     if goal_reached:
         return 1
 
     else:
-        return -0.04
+        return -1 / max_steps
 
 
 def punish_no_sparse(goal_reached, goal_distance, hit_wall):
+    # TODO scale to [-1, 1]
     if goal_reached:
         return 100
 

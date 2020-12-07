@@ -123,7 +123,8 @@ class Env:
         return scan_range + [heading, current_goal_distance, obstacle_min_range, obstacle_angle], done, hit_wall
 
     def get_reward(self, state, done, action, hit_wall):
-        reward = reward_service.punish_no_sparse(self.goal_reached, self.get_goal_distance(), hit_wall)
+#        reward = reward_service.punish_no_sparse(self.goal_reached, self.get_goal_distance(), hit_wall)
+        reward = reward_service.punish_sparse(self.goal_reached)
 
         if done:
             rospy.loginfo("Collision!!")
